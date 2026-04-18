@@ -348,6 +348,11 @@ window.addEventListener('DOMContentLoaded', () => {
   initXOGame();
   initRPSGame();
   initEmojiGuessGame();
+  initTruthDareGame();
+  initWouldRatherGame();
+  initQuickMathGame();
+  initWordChainGame();
+  initSpinWheelGame();
 
   // Load saved custom bg
   const savedCustomBg = localStorage.getItem('cf-custom-bg');
@@ -1571,6 +1576,133 @@ function initEmojiGuessGame() {
     const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
     socket?.emit('send-message', { id: generateId(), content: `🤔 خمّن الكلمة!\n\n${puzzle.emoji}\n\nالجواب: ||${puzzle.answer}||`, type: 'text' });
     showToast(`الجواب: ${puzzle.answer}`);
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Truth or Dare ── */
+function initTruthDareGame() {
+  const startBtn = document.getElementById('start-truth-dare');
+  if (!startBtn) return;
+
+  const truths = [
+    'ما هو أكثر شيء محرج حصل لك؟ 😳',
+    'مين أكثر شخص بتفكر فيه دلوقتي؟ 💭',
+    'لو تقدر ترجع بالزمن، إيه أول حاجة هتغيرها؟ ⏰',
+    'إيه أكبر سر عندك محدش يعرفه؟ 🤫',
+    'مين آخر شخص بعتله رسالة حب؟ 💌',
+    'إيه أغرب حاجة جوجلتها؟ 🔍',
+    'لو مفيش عواقب، إيه أول حاجة هتعملها؟ 🤪',
+    'إيه أكثر حاجة بتخاف منها؟ 😰',
+    'مين أقرب شخص ليك في الدنيا؟ 🥰',
+    'لو لازم تاكل أكلة واحدة بس لآخر حياتك، هتختار إيه؟ 🍽️',
+  ];
+
+  const dares = [
+    'ابعت آخر صورة في الجاليري! 📸',
+    'اكتب بوست على السوشيال ميديا دلوقتي! 📱',
+    'ابعت رسالة لآخر شخص كلمته وقوله بحبك! 😂',
+    'غنّي أغنية واحنا بنسمع! 🎤',
+    'اعمل سكرينشوت لآخر محادثة وابعتها! 💬',
+    'قلد صوت حيوان واحنا بنسمع! 🐱',
+    'ابعت صورة سيلفي دلوقتي! 🤳',
+    'اكتب اسمك بالمقلوب في 10 ثواني! ⏱️',
+  ];
+
+  startBtn.addEventListener('click', () => {
+    const isTruth = Math.random() > 0.5;
+    const list = isTruth ? truths : dares;
+    const item = list[Math.floor(Math.random() * list.length)];
+    const label = isTruth ? '🟢 صراحة' : '🔴 جرأة';
+    socket?.emit('send-message', { id: generateId(), content: `🔥 ${label}\n\n${item}`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Would You Rather ── */
+function initWouldRatherGame() {
+  const startBtn = document.getElementById('start-would-rather');
+  if (!startBtn) return;
+
+  const questions = [
+    ['تعيش بدون إنترنت سنة 📵', 'تعيش بدون أكل لذيذ سنة 🍽️'],
+    ['تقدر تطير 🦅', 'تقدر تتنفس تحت الماء 🐠'],
+    ['تعرف المستقبل 🔮', 'تقدر تغير الماضي ⏰'],
+    ['تكون أذكى شخص في العالم 🧠', 'تكون أغنى شخص في العالم 💰'],
+    ['تعيش في الفضاء 🚀', 'تعيش في أعماق البحر 🌊'],
+    ['تتكلم كل لغات العالم 🗣️', 'تعزف كل آلة موسيقية 🎸'],
+    ['تقدر تقرأ أفكار الناس 🧠', 'تقدر تتحكم في الوقت ⏳'],
+    ['تعيش في عالم هاري بوتر 🧙', 'تعيش في عالم مارفل 🦸'],
+    ['تاكل بيتزا كل يوم 🍕', 'تاكل سوشي كل يوم 🍣'],
+    ['مفيش نوم أبداً بس طاقة كاملة 💪', 'تنام 12 ساعة بس أحلام حقيقية 💫'],
+  ];
+
+  startBtn.addEventListener('click', () => {
+    const q = questions[Math.floor(Math.random() * questions.length)];
+    socket?.emit('send-message', { id: generateId(), content: `🤷‍♂️ هل تفضّل؟\n\n1️⃣ ${q[0]}\n\nأو\n\n2️⃣ ${q[1]}\n\nاختار! ⬇️`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Quick Math Challenge ── */
+function initQuickMathGame() {
+  const startBtn = document.getElementById('start-quick-math');
+  if (!startBtn) return;
+
+  startBtn.addEventListener('click', () => {
+    const ops = ['+', '-', '×'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    let a, b, answer;
+    if (op === '+') { a = Math.floor(Math.random() * 50) + 10; b = Math.floor(Math.random() * 50) + 10; answer = a + b; }
+    else if (op === '-') { a = Math.floor(Math.random() * 50) + 30; b = Math.floor(Math.random() * 30) + 1; answer = a - b; }
+    else { a = Math.floor(Math.random() * 12) + 2; b = Math.floor(Math.random() * 12) + 2; answer = a * b; }
+    
+    socket?.emit('send-message', { id: generateId(), content: `⚡ تحدي الحساب السريع!\n\n🧮 ${a} ${op} ${b} = ؟\n\nمين يجاوب أسرع! 🏃‍♂️\n\nالجواب: ||${answer}||`, type: 'text' });
+    showToast(`الجواب: ${answer}`);
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Word Chain ── */
+function initWordChainGame() {
+  const startBtn = document.getElementById('start-word-chain');
+  if (!startBtn) return;
+
+  const starters = ['شمس', 'قمر', 'بحر', 'سماء', 'حب', 'نور', 'ورد', 'كتاب', 'سفر', 'موسيقى', 'حياة', 'صداقة'];
+  
+  startBtn.addEventListener('click', () => {
+    const word = starters[Math.floor(Math.random() * starters.length)];
+    const lastChar = word[word.length - 1];
+    socket?.emit('send-message', { id: generateId(), content: `🔤🔗 سلسلة الكلمات!\n\nالقاعدة: كل واحد يقول كلمة تبدأ بآخر حرف من الكلمة اللي قبلها!\n\nالكلمة الأولى: 【${word}】\n\nدورك! قول كلمة تبدأ بحرف: "${lastChar}" ✍️`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Spin Wheel (Luck Wheel) ── */
+function initSpinWheelGame() {
+  const startBtn = document.getElementById('start-spin-wheel');
+  if (!startBtn) return;
+
+  const prizes = [
+    { emoji: '🎉', text: 'مبرووك! فزت بلقب ملك/ة الشات!' },
+    { emoji: '😂', text: 'لازم تبعت نكتة مضحكة دلوقتي!' },
+    { emoji: '🎵', text: 'لازم تبعت مقطع صوتي وانت بتغني!' },
+    { emoji: '📸', text: 'ابعت صورة سيلفي دلوقتي!' },
+    { emoji: '💌', text: 'اكتب كومبليمنت حلو للطرف التاني!' },
+    { emoji: '🤣', text: 'احكي أطرف موقف حصلك!' },
+    { emoji: '🎭', text: 'قلد شخصية مشهورة بالصوت!' },
+    { emoji: '🌟', text: 'فزت بلقب نجم/ة اليوم! ⭐' },
+    { emoji: '💀', text: 'خسرت! لازم تعمل أي حاجة الطرف التاني يقولها!' },
+    { emoji: '🎁', text: 'مبرووك! الطرف التاني لازم يديك كومبليمنت!' },
+    { emoji: '🔥', text: 'Hot seat! الطرف التاني يسألك 3 أسئلة ولازم تجاوب بصراحة!' },
+    { emoji: '👑', text: 'أنت ملك/ة المحادثة لمدة 5 دقائق! 🏆' },
+  ];
+
+  startBtn.addEventListener('click', () => {
+    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+    const spinEmojis = ['🎡', '🎰', '🎯', '✨', '💫', '🌀'];
+    const spinAnim = spinEmojis.join(' ');
+    socket?.emit('send-message', { id: generateId(), content: `🎡 عجلة الحظ تدور...\n\n${spinAnim}\n\n${prize.emoji} النتيجة:\n${prize.text}`, type: 'text' });
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
