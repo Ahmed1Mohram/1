@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
-   ChatFlow — Premium Telegram-Style Theme
-   Eye-friendly · Fluid · Elegant
+   ChatFlow — Ultra Premium Futuristic Theme
+   Eye-friendly · Fluid · Elegant · Next-Gen
    ═══════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
@@ -11,31 +11,31 @@ html {
   overscroll-behavior: none;
 }
 
-/* ── CSS Variables — Soft Deep Teal (eye-friendly) ── */
+/* ── CSS Variables — Dreamy Night Sky (ultra eye-friendly) ── */
 :root {
-  --primary:        #5b9af5;
-  --primary-dark:   #3a7bd5;
+  --primary:        #7cacf8;
+  --primary-dark:   #5a8de6;
   --primary-light:  #dbeafe;
-  --accent:         #60b8ff;
-  --bg-app:         #1a2535;
-  --bg-panel:       #212d3d;
-  --bg-panel2:      #2a3a50;
-  --bg-input:       #2a3a50;
-  --bg-msg-mine:    #2b4f80;
-  --bg-msg-other:   #243041;
-  --text-primary:   #dce6f5;
-  --text-secondary: #7a9ab8;
-  --text-timestamp: #5d7fa0;
-  --border:         #2e4060;
-  --shadow:         rgba(0,0,0,0.35);
-  --tick-grey:      #5d7fa0;
-  --tick-blue:      #60b8ff;
-  --radius-msg:     18px;
-  --radius-lg:      22px;
-  --transition:     0.28s cubic-bezier(.4,0,.2,1);
+  --accent:         #a78bfa;
+  --bg-app:         #0f1623;
+  --bg-panel:       rgba(18, 27, 42, 0.92);
+  --bg-panel2:      rgba(24, 35, 55, 0.85);
+  --bg-input:       rgba(20, 30, 48, 0.7);
+  --bg-msg-mine:    rgba(55, 90, 145, 0.55);
+  --bg-msg-other:   rgba(28, 40, 60, 0.6);
+  --text-primary:   #e2eaf6;
+  --text-secondary: #8ba3c2;
+  --text-timestamp: #6d8aab;
+  --border:         rgba(124, 172, 248, 0.1);
+  --shadow:         rgba(0,0,0,0.4);
+  --tick-grey:      #6d8aab;
+  --tick-blue:      #7cacf8;
+  --radius-msg:     20px;
+  --radius-lg:      24px;
+  --transition:     0.3s cubic-bezier(.4,0,.2,1);
   --font:           -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Arabic', 'Tajawal', sans-serif;
-  /* Telegram-style mine bubble tail */
-  --bubble-shadow:  0 1px 6px rgba(0,0,0,0.25);
+  --glow-mine:      0 2px 20px rgba(124, 172, 248, 0.12), 0 1px 6px rgba(0,0,0,0.2);
+  --glow-other:     0 2px 16px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0,0,0,0.15);
 }
 
 /* Light mode */
@@ -237,26 +237,26 @@ body {
   transition: background var(--transition), background-image var(--transition);
 }
 
-/* Default bg — Glassy with floating glowing orbs (Premium) */
+/* Default bg — Dreamy Night Sky with Aurora Orbs (Premium) */
 #chat-bg.default-bg {
-  background: #0f1724;
+  background: linear-gradient(160deg, #080e1a 0%, #0f1a2e 50%, #0c1525 100%);
   overflow: hidden;
 }
 #chat-bg.default-bg::before {
   content: '';
   position: absolute;
-  width: 150vw; height: 150vw;
-  background: radial-gradient(circle, rgba(91,154,245,0.06) 0%, transparent 60%);
-  top: -50vw; right: -50vw;
-  animation: floatOrb1 20s ease-in-out infinite alternate;
+  width: 160vw; height: 160vw;
+  background: radial-gradient(circle, rgba(124,172,248,0.05) 0%, rgba(167,139,250,0.03) 30%, transparent 60%);
+  top: -60vw; right: -60vw;
+  animation: floatOrb1 22s ease-in-out infinite alternate;
 }
 #chat-bg.default-bg::after {
   content: '';
   position: absolute;
-  width: 120vw; height: 120vw;
-  background: radial-gradient(circle, rgba(96,184,255,0.05) 0%, transparent 60%);
-  bottom: -40vw; left: -40vw;
-  animation: floatOrb2 25s ease-in-out infinite alternate;
+  width: 130vw; height: 130vw;
+  background: radial-gradient(circle, rgba(167,139,250,0.04) 0%, rgba(124,172,248,0.03) 30%, transparent 60%);
+  bottom: -50vw; left: -50vw;
+  animation: floatOrb2 28s ease-in-out infinite alternate;
 }
 @keyframes floatOrb1 {
   0% { transform: translate(0, 0) scale(1); }
@@ -290,22 +290,24 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(18,27,42,0.95) 0%, rgba(24,35,55,0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(124,172,248,0.08);
   min-height: 60px;
-  box-shadow: 0 1px 8px var(--shadow);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 .header-avatar { position: relative; flex-shrink: 0; }
 .avatar-circle {
-  width: 42px; height: 42px;
+  width: 44px; height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #5b9af5, #3a7bd5);
+  background: linear-gradient(135deg, #7cacf8, #a78bfa);
   display: flex;
   align-items: center; justify-content: center;
   font-size: 18px; font-weight: 700;
   color: white;
   user-select: none;
-  box-shadow: 0 2px 8px rgba(58,123,213,.4);
+  box-shadow: 0 3px 12px rgba(124,172,248,0.35);
 }
 .status-dot {
   width: 12px; height: 12px;
@@ -315,7 +317,7 @@ body {
   bottom: 0; left: 0;
   transition: background var(--transition);
 }
-.status-dot.online { background: var(--primary); }
+.status-dot.online { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
 .status-dot.offline { background: var(--text-secondary); }
 
 .header-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
@@ -590,29 +592,29 @@ body {
 .msg-group { margin-bottom: 2px; }
 
 .bubble {
-  max-width: min(72%, 480px);
-  padding: 8px 12px 7px;
+  max-width: min(75%, 500px);
+  padding: 10px 14px 8px;
   border-radius: var(--radius-msg);
   position: relative;
   word-break: break-word;
-  line-height: 1.6;
+  line-height: 1.65;
   font-size: 14.5px;
-  box-shadow: var(--bubble-shadow), inset 0 1px 1px rgba(255,255,255,0.08);
   transition: filter .15s, transform .15s;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .bubble:active {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
   transform: scale(0.985);
 }
 
-/* Mine (right) — Glassy Blue Gradient */
+/* Mine (right) — Dreamy Blue Glass */
 .msg-row.mine .bubble {
-  background: linear-gradient(135deg, rgba(43, 79, 128, 0.85) 0%, rgba(30, 64, 112, 0.85) 100%);
-  border-radius: var(--radius-msg) var(--radius-msg) 4px var(--radius-msg);
-  color: #e8f0ff;
-  border: 1px solid rgba(91, 154, 245, 0.15);
+  background: linear-gradient(135deg, rgba(65, 105, 170, 0.5) 0%, rgba(45, 80, 140, 0.45) 100%);
+  border-radius: var(--radius-msg) var(--radius-msg) 6px var(--radius-msg);
+  color: #eaf2ff;
+  border: 1px solid rgba(124, 172, 248, 0.12);
+  box-shadow: var(--glow-mine);
 }
 
 /* Telegram tail (mine) */
@@ -623,17 +625,17 @@ body {
   right: -7px;
   width: 0;
   height: 0;
-  border-left: 8px solid rgba(30, 64, 112, 0.85);
+  border-left: 8px solid rgba(45, 80, 140, 0.45);
   border-bottom: 8px solid transparent;
-  filter: drop-shadow(1px 1px 1px rgba(0,0,0,.15));
 }
 
-/* Other (left) — Glassy Dark Panel */
+/* Other (left) — Soft Dark Glass */
 .msg-row.other .bubble {
-  background: rgba(36, 48, 65, 0.7);
-  border-radius: var(--radius-msg) var(--radius-msg) var(--radius-msg) 4px;
+  background: rgba(28, 40, 60, 0.55);
+  border-radius: var(--radius-msg) var(--radius-msg) var(--radius-msg) 6px;
   color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: var(--glow-other);
 }
 
 /* Telegram tail (other) */
@@ -644,7 +646,7 @@ body {
   left: -7px;
   width: 0;
   height: 0;
-  border-right: 8px solid rgba(36, 48, 65, 0.7);
+  border-right: 8px solid rgba(28, 40, 60, 0.55);
   border-bottom: 8px solid transparent;
 }
 
@@ -851,17 +853,18 @@ body {
   padding: 8px 10px;
   margin: 0 10px 10px;
   margin-bottom: max(10px, env(safe-area-inset-bottom));
-  background: rgba(33, 45, 61, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  background: rgba(18, 27, 42, 0.8);
+  backdrop-filter: blur(30px) saturate(1.2);
+  -webkit-backdrop-filter: blur(30px) saturate(1.2);
+  border: 1px solid rgba(124, 172, 248, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.04);
   flex-shrink: 0;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
 #input-bar:focus-within {
-  box-shadow: 0 12px 40px rgba(91, 154, 245, 0.2);
+  box-shadow: 0 12px 48px rgba(124, 172, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  border-color: rgba(124, 172, 248, 0.2);
   transform: translateY(-2px);
 }
 

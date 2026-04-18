@@ -568,27 +568,59 @@ function handleFileSelect(e) {
   const isVideo = file.type.startsWith('video/');
   if (!isImage && !isVideo) { showToast('❌ صيغة غير مدعومة', 'error'); return; }
 
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const content = ev.target.result;
-    const id = generateId();
-    const fileType = isImage ? 'image' : 'video';
-    const now = Date.now();
+  if (isImage) {
+    // Compress image before sending
+    compressAndSendImage(file);
+  } else {
+    // Video: send as-is
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target.result;
+      const id = generateId();
+      const now = Date.now();
+      const msgDate = new Date(now).toLocaleDateString('ar-EG');
+      const lastMsg = messagesList.lastElementChild;
+      if (msgDate !== lastMsg?.dataset?.date) addDateSeparator(now);
+      renderMessage({ id, senderId: mySocketId, type: 'video', content, fileName: file.name, timestamp: now, status: 'sent' }, true);
+      socket.emit('send-file', { id, fileType: 'video', content, fileName: file.name });
+      pendingMessages.set(id, { status: 'sent' });
+      scrollToBottom();
+    };
+    reader.readAsDataURL(file);
+  }
+}
 
+function compressAndSendImage(file) {
+  showToast('📷 جاري تحضير الصورة...');
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    const canvas = document.createElement('canvas');
+    const MAX_DIM = 1280;
+    let w = img.width, h = img.height;
+    if (w > MAX_DIM || h > MAX_DIM) {
+      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+      else { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const content = canvas.toDataURL('image/jpeg', 0.82);
+    
+    const id = generateId();
+    const now = Date.now();
     const msgDate = new Date(now).toLocaleDateString('ar-EG');
     const lastMsg = messagesList.lastElementChild;
     if (msgDate !== lastMsg?.dataset?.date) addDateSeparator(now);
-
-    renderMessage({
-      id, senderId: mySocketId, type: fileType,
-      content, fileName: file.name, timestamp: now, status: 'sent'
-    }, true);
-
-    socket.emit('send-file', { id, fileType, content, fileName: file.name });
+    renderMessage({ id, senderId: mySocketId, type: 'image', content, fileName: file.name, timestamp: now, status: 'sent' }, true);
+    socket.emit('send-file', { id, fileType: 'image', content, fileName: file.name });
     pendingMessages.set(id, { status: 'sent' });
     scrollToBottom();
   };
-  reader.readAsDataURL(file);
+  img.onerror = () => { showToast('❌ فشل تحميل الصورة', 'error'); };
+  img.src = url;
 }
 
 /* ─────────────────── AUDIO RECORDING ─────────────────── */
