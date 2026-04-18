@@ -353,6 +353,14 @@ window.addEventListener('DOMContentLoaded', () => {
   initQuickMathGame();
   initWordChainGame();
   initSpinWheelGame();
+  initNeverHaveGame();
+  initTwoTruthsGame();
+  initStoryBuilderGame();
+  initTriviaGame();
+  initCompatibilityGame();
+  initRateMeGame();
+  init20QGame();
+  initThisOrThatGame();
 
   // Load saved custom bg
   const savedCustomBg = localStorage.getItem('cf-custom-bg');
@@ -1703,6 +1711,173 @@ function initSpinWheelGame() {
     const spinEmojis = ['🎡', '🎰', '🎯', '✨', '💫', '🌀'];
     const spinAnim = spinEmojis.join(' ');
     socket?.emit('send-message', { id: generateId(), content: `🎡 عجلة الحظ تدور...\n\n${spinAnim}\n\n${prize.emoji} النتيجة:\n${prize.text}`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Never Have I Ever ── */
+function initNeverHaveGame() {
+  const btn = document.getElementById('start-never-have');
+  if (!btn) return;
+  const qs = [
+    'ما عمري نمت في محاضرة 😴',
+    'ما عمري كلمت حد غلط بالتلفون وكملت الكلام 😂',
+    'ما عمري بعت رسالة للشخص الغلط 📱',
+    'ما عمري أكلت أكل من الأرض 🍕',
+    'ما عمري ضحكت في موقف مش مناسب 🤭',
+    'ما عمري كذبت عشان ما أروحش الشغل/المدرسة 🤥',
+    'ما عمري سرقت أكل من التلاجة بالليل 🌙',
+    'ما عمري نسيت اسم حد وأنا بكلمه 😅',
+    'ما عمري ادعيت إني مشغول عشان ما أطلعش 🙈',
+    'ما عمري شفت فيلم رعب ونمت بالنور 👻',
+    'ما عمري بكيت من فيلم كرتون 😢',
+    'ما عمري حكيت سر حد تاني 🤫',
+    'ما عمري رجعت اتصلت بشخص بعد ما قلت مش هكلمه تاني 📞',
+    'ما عمري غنيت في الحمام 🎤🚿',
+    'ما عمري رقصت لوحدي في البيت 💃',
+  ];
+  btn.addEventListener('click', () => {
+    const q = qs[Math.floor(Math.random() * qs.length)];
+    socket?.emit('send-message', { id: generateId(), content: `🙅‍♂️ ما عمري!\n\n${q}\n\n🟢 أنا عملتها = رد بـ ✅\n🔴 أنا ما عملتها = رد بـ ❌`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Two Truths One Lie ── */
+function initTwoTruthsGame() {
+  const btn = document.getElementById('start-two-truths');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    socket?.emit('send-message', { id: generateId(), content: `✅✅❌ حقيقتين وكذبة!\n\n📋 القاعدة:\nاكتب 3 جمل عن نفسك:\n- جملتين حقيقيتين ✅\n- جملة وحدة كذبة ❌\n\nوالطرف التاني لازم يخمّن الكذبة! 🕵️\n\nيلا ابدأ! ✍️`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Story Builder ── */
+function initStoryBuilderGame() {
+  const btn = document.getElementById('start-story-builder');
+  if (!btn) return;
+  const starters = [
+    'في يوم من الأيام، صحيت ولقيت نفسي في عالم غريب...',
+    'كنت ماشي في الشارع ولقيت صندوق غامض...',
+    'فجأة وصلتني رسالة من شخص مجهول...',
+    'دخلت غرفة مظلمة وسمعت صوت غريب...',
+    'لو رجعت بالزمن 100 سنة، أول حاجة حصلت...',
+    'في عالم موازي، أنا أصلاً كنت...',
+    'فتحت الباب ولقيت روبوت واقف قدامي وقالي...',
+    'لقيت خريطة قديمة تحت السرير وكان مكتوب فيها...',
+  ];
+  btn.addEventListener('click', () => {
+    const s = starters[Math.floor(Math.random() * starters.length)];
+    socket?.emit('send-message', { id: generateId(), content: `📖✍️ بناء القصة!\n\n📋 القاعدة:\nكل واحد يضيف جملة واحدة للقصة!\nنبني قصة مجنونة مع بعض 🤪\n\n📌 البداية:\n"${s}"\n\nكمّل القصة! ⬇️`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Trivia Quiz ── */
+function initTriviaGame() {
+  const btn = document.getElementById('start-trivia');
+  if (!btn) return;
+  const qs = [
+    { q: 'ما هي عاصمة أستراليا؟', a: 'كانبرا', opts: ['سيدني', 'كانبرا', 'ملبورن', 'بريزبن'] },
+    { q: 'كم عدد كواكب المجموعة الشمسية؟', a: '8', opts: ['7', '8', '9', '10'] },
+    { q: 'ما هو أطول نهر في العالم؟', a: 'النيل', opts: ['الأمازون', 'النيل', 'المسيسبي', 'الدانوب'] },
+    { q: 'في أي سنة وصل الإنسان للقمر؟', a: '1969', opts: ['1965', '1969', '1972', '1960'] },
+    { q: 'ما هو العنصر الكيميائي الأكثر وفرة في الكون؟', a: 'الهيدروجين', opts: ['الأكسجين', 'الهيدروجين', 'الكربون', 'النيتروجين'] },
+    { q: 'كم عظمة في جسم الإنسان البالغ؟', a: '206', opts: ['196', '206', '216', '256'] },
+    { q: 'ما هي أكبر دولة في أفريقيا مساحةً؟', a: 'الجزائر', opts: ['مصر', 'الجزائر', 'السودان', 'ليبيا'] },
+    { q: 'من اخترع المصباح الكهربائي؟', a: 'توماس إديسون', opts: ['نيكولا تيسلا', 'توماس إديسون', 'ألبرت أينشتاين', 'غراهام بيل'] },
+    { q: 'ما هو أسرع حيوان بري في العالم؟', a: 'الفهد', opts: ['الأسد', 'الفهد', 'النمر', 'الحصان'] },
+    { q: 'كم لغة رسمية في الأمم المتحدة؟', a: '6', opts: ['4', '5', '6', '8'] },
+  ];
+  btn.addEventListener('click', () => {
+    const t = qs[Math.floor(Math.random() * qs.length)];
+    const shuffled = [...t.opts].sort(() => Math.random() - 0.5);
+    const optStr = shuffled.map((o, i) => `${'①②③④'[i]} ${o}`).join('\n');
+    socket?.emit('send-message', { id: generateId(), content: `🧠 معلومات عامة!\n\n❓ ${t.q}\n\n${optStr}\n\nالجواب: ||${t.a}||`, type: 'text' });
+    showToast(`الجواب: ${t.a}`);
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Compatibility Test ── */
+function initCompatibilityGame() {
+  const btn = document.getElementById('start-compatibility');
+  if (!btn) return;
+  const results = [
+    { pct: '98%', msg: 'توأم الروح! 💫 أنتم مخلوقين لبعض!', emoji: '💕🔥' },
+    { pct: '85%', msg: 'توافق خرافي! كأنكم تقرأون أفكار بعض! 🧠', emoji: '✨💖' },
+    { pct: '73%', msg: 'متوافقين جداً! فيه كيمياء واضحة بينكم 🧪', emoji: '💝🌟' },
+    { pct: '92%', msg: 'واو! نسبة عالية جداً! Match made in heaven! ☁️', emoji: '😍💯' },
+    { pct: '67%', msg: 'متوافقين بس محتاجين وقت أكتر مع بعض! ⏰', emoji: '💛🤝' },
+    { pct: '100%', msg: 'مستحيل!! نسبة التوافق كاملة! أنتم مش طبيعيين! 🤯', emoji: '🏆👑💎' },
+    { pct: '79%', msg: 'حلو! التوافق موجود بس في حاجات لسه هتكتشفوها! 🔍', emoji: '💜🌙' },
+    { pct: '88%', msg: 'ممتاز! أنتم مكملين بعض زي القهوة والحليب ☕', emoji: '🥰💫' },
+  ];
+  btn.addEventListener('click', () => {
+    const r = results[Math.floor(Math.random() * results.length)];
+    const bar = '█'.repeat(Math.floor(parseInt(r.pct) / 10)) + '░'.repeat(10 - Math.floor(parseInt(r.pct) / 10));
+    socket?.emit('send-message', { id: generateId(), content: `💕 نسبة التوافق بينكم:\n\n${r.emoji}\n\n[${bar}] ${r.pct}\n\n${r.msg}`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Rate Me ── */
+function initRateMeGame() {
+  const btn = document.getElementById('start-rate-me');
+  if (!btn) return;
+  const categories = [
+    'الشخصية 🧍', 'الذكاء 🧠', 'روح الدعابة 😂', 'الاهتمام ❤️',
+    'الصدق 🤝', 'الطيبة 🕊️', 'الجنون 🤪', 'الكسل 😴',
+    'الإبداع 🎨', 'الرومانسية 🌹', 'القوة 💪', 'الغموض 🕶️',
+    'الجمال ✨', 'الفضول 🔍', 'الصبر ⏳', 'السرعة ⚡',
+  ];
+  btn.addEventListener('click', () => {
+    const selected = [];
+    const pool = [...categories];
+    for (let i = 0; i < 5; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      selected.push(pool.splice(idx, 1)[0]);
+    }
+    const lines = selected.map(c => `${c}: ___/10`).join('\n');
+    socket?.emit('send-message', { id: generateId(), content: `⭐ قيّمني!\n\nادي كل حاجة درجة من 10:\n\n${lines}\n\nيلا قيّم بصراحة! 💯`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── 20 Questions ── */
+function init20QGame() {
+  const btn = document.getElementById('start-20q');
+  if (!btn) return;
+  const categories = ['شخصية مشهورة 🌟', 'حيوان 🐾', 'مكان 🌍', 'أكل 🍽️', 'فيلم/مسلسل 🎬', 'أداة/جهاز 📱'];
+  btn.addEventListener('click', () => {
+    const cat = categories[Math.floor(Math.random() * categories.length)];
+    socket?.emit('send-message', { id: generateId(), content: `🔎 لعبة 20 سؤال!\n\n📋 القاعدة:\nأنا فكّرت في: ${cat}\nاسألني أسئلة نعم/لا وحاول تخمّن!\n\nعندك 20 سؤال بس! ⏳\n\nيلا ابدأ اسأل! ❓`, type: 'text' });
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── This or That ── */
+function initThisOrThatGame() {
+  const btn = document.getElementById('start-this-or-that');
+  if (!btn) return;
+  const pairs = [
+    ['☕ قهوة', '🍵 شاي'], ['🌅 صباح', '🌙 ليل'], ['📱 آيفون', '🤖 أندرويد'],
+    ['🍕 بيتزا', '🍔 برجر'], ['🏖️ بحر', '🏔️ جبل'], ['🎮 بلايستيشن', '🎮 إكس بوكس'],
+    ['📚 كتب', '🎬 أفلام'], ['🐱 قطة', '🐶 كلب'], ['❄️ شتاء', '☀️ صيف'],
+    ['🎵 بوب', '🎸 روك'], ['🍫 شوكولاتة', '🍬 حلويات'], ['✈️ سفر', '🏠 بيت'],
+    ['💬 مكالمة', '📝 رسالة'], ['🎯 حظ', '🧠 ذكاء'], ['😂 كوميدي', '😱 رعب'],
+  ];
+  btn.addEventListener('click', () => {
+    // Pick 5 random pairs for a quick fire round
+    const selected = [];
+    const pool = [...pairs];
+    for (let i = 0; i < 5; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      selected.push(pool.splice(idx, 1)[0]);
+    }
+    const lines = selected.map((p, i) => `${i+1}. ${p[0]}  أو  ${p[1]}`).join('\n');
+    socket?.emit('send-message', { id: generateId(), content: `👈👉 ده ولا ده؟ (جولة سريعة!)\n\n${lines}\n\nجاوب بالأرقام! مثال: 1-يمين 2-شمال... ⚡`, type: 'text' });
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
