@@ -82,6 +82,26 @@ io.on('connection', (socket) => {
     socket.emit('message-delivered', { id: data.id });
   });
 
+  // ─── Edit message (within 5 minutes) ───
+  socket.on('edit-message', (data) => {
+    const user = connectedUsers.get(socket.id);
+    if (!user) return;
+    
+    const history = roomMessages.get(user.room) || [];
+    const msg = history.find(m => m.id === data.id);
+    
+    if (msg && msg.senderId === socket.id && msg.type === 'text') {
+      const timeDiff = Date.now() - msg.timestamp;
+      // Allow edit within 5 minutes (300,000 ms)
+      if (timeDiff <= 5 * 60 * 1000) {
+        msg.content = data.content;
+        msg.edited = true;
+        // Broadcast the edit to all in room, including sender
+        io.to(user.room).emit('message-edited', { id: data.id, content: data.content });
+      }
+    }
+  });
+
   // ─── File message (image / video / audio) ───
   socket.on('send-file', (data) => {
     const user = connectedUsers.get(socket.id);

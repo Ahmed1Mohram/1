@@ -440,6 +440,25 @@ function setupSocketListeners() {
     if (soundEnabled) playNotifySound();
   });
 
+  socket.on('message-edited', ({ id, content }) => {
+    const row = messageEls.get(id);
+    if (row) {
+      const textSpan = row.querySelector('.msg-text');
+      if (textSpan) {
+        textSpan.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
+        let meta = row.querySelector('.msg-meta');
+        if (meta && !meta.querySelector('.edited-label')) {
+           const lbl = document.createElement('span');
+           lbl.className = 'edited-label';
+           lbl.style.fontSize = '10px';
+           lbl.style.marginRight = '4px';
+           lbl.textContent = '(معدل)';
+           meta.insertBefore(lbl, meta.querySelector('span:not(.edit-btn)'));
+        }
+      }
+    }
+  });
+
   socket.on('message-delivered', ({ id }) => {
     updateMessageStatus(id, 'delivered');
   });
@@ -465,11 +484,22 @@ function setupSocketListeners() {
   });
 }
 
+let editingMsgId = null;
+
 /* ─────────────────── SEND TEXT MESSAGE ─────────────────── */
 function sendTextMessage() {
   const text = msgInput.value.trim();
   if (!text || !socket || !socket.connected) {
     if (!socket || !socket.connected) showToast('⚠️ غير متصل بالإنترنت', 'error');
+    return;
+  }
+  
+  if (editingMsgId) {
+    socket.emit('edit-message', { id: editingMsgId, content: text });
+    editingMsgId = null;
+    msgInput.value = '';
+    msgInput.style.height = 'auto';
+    toggleSendMic();
     return;
   }
 
@@ -541,13 +571,13 @@ async function startAudioRecording() {
   }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, sampleRate: 48000, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      audio: { channelCount: 2, sampleRate: 48000, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
     });
 
     const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
     const mimeType = mimeTypes.find(t => MediaRecorder.isTypeSupported(t)) || '';
 
-    mediaRecorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 128000 });
+    mediaRecorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 320000 });
     recordedChunks = [];
 
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -584,7 +614,8 @@ function stopAndSendRecording() {
   if (!mediaRecorder || !isRecording) return;
   mediaRecorder.addEventListener('stop', () => {
     if (recordedChunks.length === 0) return;
-    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+    const blobType = mediaRecorder.mimeType || (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') ? 'audio/mp4' : 'audio/webm');
+    const blob = new Blob(recordedChunks, { type: blobType });
     const reader = new FileReader();
     reader.onload = ev => {
       const content = ev.target.result;
@@ -621,9 +652,17 @@ function renderMessage(data, isMine, isHistory = false) {
   bubble.classList.add('bubble');
 
   if (data.type === 'text') {
+    const isEditable = isMine && (Date.now() - data.timestamp < 5 * 60 * 1000);
+    const editBtn = isEditable 
+      ? `<svg class="edit-btn" viewBox="0 0 24 24" width="14" height="14" style="cursor:pointer;margin-left:4px;opacity:0.7" onclick="startEditing('${data.id}')"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>` 
+      : '';
+    const editedHtml = data.edited ? `<span class="edited-label" style="font-size:10px;margin-right:4px">(معدل)</span>` : '';
+    
     bubble.innerHTML = `
       <span class="msg-text">${escapeHtml(data.content).replace(/\n/g, '<br>')}</span>
-      <div class="msg-meta">
+      <div class="msg-meta" style="align-items:center;">
+        ${editBtn}
+        ${editedHtml}
         <span>${formatTime(data.timestamp)}</span>
         ${isMine ? renderTicks(data.status || 'sent') : ''}
       </div>`;
@@ -702,6 +741,26 @@ function renderMessage(data, isMine, isHistory = false) {
   return row;
 }
 
+/* ─────────────────── MESSAGE EDITING ─────────────────── */
+window.startEditing = function(id) {
+  const row = messageEls.get(id);
+  if (!row) return;
+  const textSpan = row.querySelector('.msg-text');
+  if (!textSpan) return;
+  
+  let content = textSpan.innerHTML
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"');
+    
+  msgInput.value = content;
+  editingMsgId = id;
+  msgInput.focus();
+  toggleSendMic();
+};
+
 /* ─────────────────── TICK STATUS ─────────────────── */
 function updateMessageStatus(msgId, status) {
   const row = messageEls.get(msgId);
@@ -741,7 +800,12 @@ window.toggleAudio = function (audioId, waveId, btn, spdId) {
         if (ob) ob.innerHTML = '<svg viewBox="0 0 24 24"><path fill="white" d="M8 5v14l11-7z"/></svg>';
       }
     });
-    audio.play();
+    audio.play().catch(err => {
+      console.error('Audio play error:', err);
+      // If it fails to play, stop the animations and show an error
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path fill="white" d="M8 5v14l11-7z"/></svg>';
+      wave.classList.remove('playing');
+    });
     btn.innerHTML = '<svg viewBox="0 0 24 24"><path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
     wave.classList.add('playing');
     
