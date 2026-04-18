@@ -327,13 +327,27 @@ window.addEventListener('DOMContentLoaded', () => {
     window.location.replace(window.location.href.split('?')[0]);
   });
 
-  // Join room
+  // Join room - support both click AND touch
   joinBtn.addEventListener('click', joinRoom);
+  joinBtn.addEventListener('touchend', (e) => { e.preventDefault(); joinRoom(); });
   genRoomBtn.addEventListener('click', () => {
     roomCodeInput.value = Math.random().toString(36).substring(2, 8).toUpperCase();
   });
-  myNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') roomCodeInput.focus(); });
-  roomCodeInput.addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
+  myNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); roomCodeInput.focus(); } });
+  roomCodeInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); joinRoom(); } });
+
+  // Games panel
+  const gamesBtn = document.getElementById('games-btn');
+  const gamesOverlay = document.getElementById('games-overlay');
+  const closeGames = document.getElementById('close-games');
+  if (gamesBtn) gamesBtn.addEventListener('click', () => gamesOverlay?.classList.remove('hidden'));
+  if (closeGames) closeGames.addEventListener('click', () => gamesOverlay?.classList.add('hidden'));
+  if (gamesOverlay) gamesOverlay.addEventListener('click', (e) => { if (e.target === gamesOverlay) gamesOverlay.classList.add('hidden'); });
+
+  // Init Games
+  initXOGame();
+  initRPSGame();
+  initEmojiGuessGame();
 
   // Load saved custom bg
   const savedCustomBg = localStorage.getItem('cf-custom-bg');
@@ -358,7 +372,13 @@ function joinRoom() {
   joinBtn.disabled = true;
   joinBtn.textContent = 'جاري الاتصال...';
 
-  socket = io({ transports: ['websocket'] });
+  socket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000
+  });
 
   socket.on('connect', () => {
     mySocketId = socket.id;
@@ -1429,4 +1449,128 @@ function showToast(msg, type = 'success') {
   t.textContent = msg;
   toastContainer.appendChild(t);
   setTimeout(() => t.remove(), 3500);
+}
+
+/* ═══════════════════════════════════════
+   GAMES — XO, RPS, EMOJI GUESS
+═══════════════════════════════════════ */
+
+/* ── XO Game ── */
+function initXOGame() {
+  const startBtn = document.getElementById('start-xo');
+  const gameEl = document.getElementById('xo-game');
+  const board = document.getElementById('xo-board');
+  const statusEl = document.getElementById('xo-status');
+  const resetBtn = document.getElementById('xo-reset');
+  if (!startBtn || !gameEl) return;
+
+  let cells = ['','','','','','','','',''];
+  let myTurn = true;
+  let gameOver = false;
+
+  startBtn.addEventListener('click', () => {
+    document.querySelector('.games-grid').classList.add('hidden');
+    gameEl.classList.remove('hidden');
+    resetXO();
+    socket?.emit('send-message', { id: generateId(), content: '🎮 بدأ لعبة إكس أو! تعال نلعب', type: 'text' });
+  });
+
+  board?.querySelectorAll('.xo-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const i = parseInt(cell.dataset.i);
+      if (cells[i] || !myTurn || gameOver) return;
+      cells[i] = '❌';
+      cell.textContent = '❌';
+      cell.classList.add('x');
+      myTurn = false;
+      statusEl.textContent = 'دور الخصم...';
+      socket?.emit('send-message', { id: generateId(), content: `🎮XO:${i}:X`, type: 'text' });
+      checkWin();
+    });
+  });
+
+  // Listen for partner moves via message
+  const origReceive = window._xoReceive;
+  window._xoReceive = function(content) {
+    if (!content.startsWith('🎮XO:')) return false;
+    const parts = content.split(':');
+    const idx = parseInt(parts[1]);
+    const mark = '⭕';
+    cells[idx] = mark;
+    const cell = board?.querySelector(`[data-i="${idx}"]`);
+    if (cell) { cell.textContent = mark; cell.classList.add('o'); }
+    myTurn = true;
+    statusEl.textContent = 'دورك!';
+    checkWin();
+    return true;
+  };
+
+  function checkWin() {
+    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for (const [a,b,c] of wins) {
+      if (cells[a] && cells[a] === cells[b] && cells[b] === cells[c]) {
+        gameOver = true;
+        statusEl.textContent = cells[a] === '❌' ? '🎉 فزت!' : '😔 خسرت!';
+        return;
+      }
+    }
+    if (cells.every(c => c)) {
+      gameOver = true;
+      statusEl.textContent = '🤝 تعادل!';
+    }
+  }
+
+  function resetXO() {
+    cells = ['','','','','','','','',''];
+    myTurn = true;
+    gameOver = false;
+    statusEl.textContent = 'دورك!';
+    board?.querySelectorAll('.xo-cell').forEach(c => { c.textContent = ''; c.className = 'xo-cell'; });
+  }
+
+  resetBtn?.addEventListener('click', () => {
+    resetXO();
+    socket?.emit('send-message', { id: generateId(), content: '🔄 تم إعادة لعبة XO!', type: 'text' });
+  });
+}
+
+/* ── Rock Paper Scissors ── */
+function initRPSGame() {
+  const startBtn = document.getElementById('start-rps');
+  if (!startBtn) return;
+
+  startBtn.addEventListener('click', () => {
+    const choices = ['✊', '✋', '✌️'];
+    const names = { '✊': 'حجر', '✋': 'ورقة', '✌️': 'مقص' };
+    const myChoice = choices[Math.floor(Math.random() * 3)];
+    socket?.emit('send-message', { id: generateId(), content: `🎮 حجر ورقة مقص! اخترت: ${names[myChoice]} ${myChoice}`, type: 'text' });
+    showToast(`اخترت ${names[myChoice]} ${myChoice}`);
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
+}
+
+/* ── Emoji Guess ── */
+function initEmojiGuessGame() {
+  const startBtn = document.getElementById('start-emoji-guess');
+  if (!startBtn) return;
+
+  const puzzles = [
+    { emoji: '🌍✈️🏖️', answer: 'سفر' },
+    { emoji: '📱💬❤️', answer: 'شات' },
+    { emoji: '🎵🎤🎶', answer: 'غناء' },
+    { emoji: '⚽🏟️🏆', answer: 'كرة قدم' },
+    { emoji: '🍕🍔🍟', answer: 'أكل' },
+    { emoji: '📚✏️🎓', answer: 'دراسة' },
+    { emoji: '🌙⭐🛏️', answer: 'نوم' },
+    { emoji: '🎬🍿🎭', answer: 'سينما' },
+    { emoji: '💪🏋️‍♂️🏃', answer: 'رياضة' },
+    { emoji: '🎮🕹️👾', answer: 'ألعاب' },
+  ];
+
+  startBtn.addEventListener('click', () => {
+    const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+    socket?.emit('send-message', { id: generateId(), content: `🤔 خمّن الكلمة!\n\n${puzzle.emoji}\n\nالجواب: ||${puzzle.answer}||`, type: 'text' });
+    showToast(`الجواب: ${puzzle.answer}`);
+    document.getElementById('games-overlay')?.classList.add('hidden');
+  });
 }

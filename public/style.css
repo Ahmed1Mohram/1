@@ -218,6 +218,95 @@ body {
   font-size: 12px;
 }
 
+.dev-credit {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+.dev-credit strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── Games Panel ── */
+#games-panel {
+  background: var(--bg-panel);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: min(360px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
+}
+.games-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(124,172,248,0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font);
+  color: var(--text-primary);
+}
+.game-card:hover {
+  background: rgba(124,172,248,0.12);
+  border-color: rgba(124,172,248,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.game-icon { font-size: 28px; }
+.game-name { font-size: 15px; font-weight: 600; }
+.game-desc { font-size: 11px; color: var(--text-secondary); }
+
+.game-container { margin-top: 16px; text-align: center; }
+.game-container h3 { font-size: 18px; margin-bottom: 12px; }
+
+/* XO Board */
+#xo-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-width: 240px;
+  margin: 0 auto;
+}
+.xo-cell {
+  aspect-ratio: 1;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: rgba(124,172,248,0.06);
+  font-size: 32px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.xo-cell:hover { background: rgba(124,172,248,0.15); }
+.xo-cell.x { color: #7cacf8; }
+.xo-cell.o { color: #a78bfa; }
+#xo-status {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 /* ══════════════════════════════════
    CHAT SCREEN LAYOUT — MOBILE-FIRST
 ══════════════════════════════════ */
