@@ -1603,3 +1603,104 @@ textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); 
   from { opacity: 0; transform: translateY(-10px) scale(.95); }
   to { opacity: 1; transform: none; }
 }
+
+/* ══════════════════════════════════
+   OVERLAY & HIDDEN
+══════════════════════════════════ */
+.hidden { display: none !important; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayFadeIn 0.25s ease;
+}
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Settings Panel ── */
+#settings-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: min(380px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: panelSlideIn 0.3s cubic-bezier(0.2,0.8,0.2,1) both;
+}
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.settings-section {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-section:last-child { border-bottom: none; }
+.settings-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* ── Background Grid ── */
+.bg-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.bg-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.bg-option.active { border-color: var(--primary); }
+.bg-option:hover { border-color: rgba(124,172,248,0.4); }
+.bg-preview {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bg-option span {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.custom-bg { background: var(--bg-panel2); color: var(--text-secondary); }
+
+/* ── Games Panel ── */
+#games-panel {
+  animation: panelSlideIn 0.3s cubic-bezier(0.2,0.8,0.2,1) both;
+}
