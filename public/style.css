@@ -382,6 +382,164 @@ body {
   margin-right: 2px;
 }
 
+/* ── Context Menu (Long Press) ── */
+.ctx-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  animation: ctxFadeIn 0.2s ease forwards;
+}
+@keyframes ctxFadeIn {
+  to { opacity: 1; }
+}
+.ctx-menu {
+  position: fixed;
+  z-index: 1000;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 0;
+  min-width: 200px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  animation: ctxSlideIn 0.25s cubic-bezier(0.2,0.8,0.2,1) both;
+  overflow: hidden;
+}
+@keyframes ctxSlideIn {
+  from { opacity: 0; transform: scale(0.85) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.ctx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: var(--font);
+}
+.ctx-menu-item:hover {
+  background: rgba(91,154,245,0.1);
+}
+.ctx-menu-item.danger {
+  color: #ff6b6b;
+}
+.ctx-menu-item.danger:hover {
+  background: rgba(255,107,107,0.1);
+}
+.ctx-menu-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.ctx-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Reply Bar ── */
+.reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-panel2);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0;
+  margin: 0 12px 6px;
+  position: relative;
+  z-index: 10;
+  animation: replySlide 0.3s cubic-bezier(0.2,0.8,0.2,1) both;
+}
+@keyframes replySlide {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reply-bar .reply-info {
+  flex: 1;
+  overflow: hidden;
+}
+.reply-bar .reply-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.reply-bar .reply-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+.reply-bar .reply-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.reply-bar .reply-close:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ── Reply reference in bubble ── */
+.bubble .reply-ref {
+  background: rgba(255,255,255,0.06);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.bubble .reply-ref:hover {
+  background: rgba(255,255,255,0.1);
+}
+.bubble .reply-ref .reply-ref-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.bubble .reply-ref .reply-ref-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: block;
+}
+
+/* ── Deleted message ── */
+.bubble.deleted-bubble {
+  opacity: 0.6;
+  font-style: italic;
+}
+.bubble.deleted-bubble .deleted-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bubble.deleted-bubble .deleted-text svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
 /* ── Message Bubbles — Slower, elegant slide up ── */
 .msg-row {
   display: flex;
@@ -410,6 +568,20 @@ body {
 @keyframes msgFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes msgDeleteFade {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.85) translateX(30px); }
+}
+
+.bubble.highlight-flash {
+  animation: highlightFlash 1.5s ease;
+}
+@keyframes highlightFlash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  30% { box-shadow: 0 0 0 4px rgba(91,154,245,0.5); background: rgba(91,154,245,0.15); }
+  60% { box-shadow: 0 0 0 2px rgba(91,154,245,0.3); }
 }
 
 .msg-row.mine  { justify-content: flex-end; margin-right: 4px; }

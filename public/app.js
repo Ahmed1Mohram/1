@@ -459,6 +459,24 @@ function setupSocketListeners() {
     }
   });
 
+  socket.on('message-deleted', ({ id }) => {
+    const row = messageEls.get(id);
+    if (row) {
+      const bubble = row.querySelector('.bubble');
+      if (bubble) {
+        bubble.classList.add('deleted-bubble');
+        bubble.innerHTML = `
+          <div class="deleted-text">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/></svg>
+            تم حذف هذه الرسالة
+          </div>
+          <div class="msg-meta">
+            <span>${formatTime(Date.now())}</span>
+          </div>`;
+      }
+    }
+  });
+
   socket.on('message-delivered', ({ id }) => {
     updateMessageStatus(id, 'delivered');
   });
@@ -512,13 +530,23 @@ function sendTextMessage() {
   const lastDate = lastMsg?.dataset?.date;
   if (msgDate !== lastDate) addDateSeparator(now);
 
-  renderMessage({
+  const msgData = {
     id, senderId: mySocketId, type: 'text',
     content: text, timestamp: now, status: 'sent'
-  }, true);
+  };
+  
+  // Attach reply reference if replying
+  if (replyingTo) {
+    msgData.replyTo = replyingTo;
+  }
+
+  renderMessage(msgData, true);
 
   pendingMessages.set(id, { status: 'sent' });
-  socket.emit('send-message', { id, content: text, type: 'text' });
+  socket.emit('send-message', { id, content: text, type: 'text', replyTo: replyingTo || undefined });
+
+  // Clear reply bar
+  if (replyingTo) cancelReply();
 
   msgInput.value = '';
   msgInput.style.height = 'auto';
@@ -707,9 +735,44 @@ function renderMessage(data, isMine, isHistory = false) {
       </div>`;
   }
 
+  // Handle deleted messages
+  if (data.deleted || data.type === 'deleted') {
+    bubble.classList.add('deleted-bubble');
+    bubble.innerHTML = `
+      <div class="deleted-text">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/></svg>
+        تم حذف هذه الرسالة
+      </div>
+      <div class="msg-meta">
+        <span>${formatTime(data.timestamp)}</span>
+      </div>`;
+  }
+
+  // Add reply reference if this message is replying to another
+  if (data.replyTo && !data.deleted) {
+    const refDiv = document.createElement('div');
+    refDiv.className = 'reply-ref';
+    refDiv.innerHTML = `
+      <span class="reply-ref-name">${escapeHtml(data.replyTo.name)}</span>
+      <span class="reply-ref-text">${escapeHtml(data.replyTo.text)}</span>`;
+    refDiv.addEventListener('click', () => {
+      const target = messageEls.get(data.replyTo.id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.querySelector('.bubble')?.classList.add('highlight-flash');
+        setTimeout(() => target.querySelector('.bubble')?.classList.remove('highlight-flash'), 1500);
+      }
+    });
+    bubble.insertBefore(refDiv, bubble.firstChild);
+  }
+
   row.appendChild(bubble);
   messagesList.appendChild(row);
   messageEls.set(data.id, row);
+
+  // Store message data for context menu
+  row._msgData = data;
+  row._isMine = isMine;
 
   // Add the heart reaction element
   const heartEl = document.createElement('div');
@@ -720,16 +783,34 @@ function renderMessage(data, isMine, isHistory = false) {
   // Double tap to like (Futuristic feature)
   let lastTap = 0;
   bubble.addEventListener('click', (e) => {
-    // ignore clicks on media elements or buttons
-    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO' || e.target.closest('button')) return;
-    
+    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO' || e.target.closest('button') || e.target.closest('.ctx-menu') || e.target.closest('.reply-ref')) return;
     const now = Date.now();
     if (now - lastTap < 300) {
       heartEl.classList.remove('animate');
-      void heartEl.offsetWidth; // trigger reflow
+      void heartEl.offsetWidth;
       heartEl.classList.add('animate');
     }
     lastTap = now;
+  });
+
+  // Long press context menu (mobile + desktop right-click)
+  let longPressTimer = null;
+  const startLongPress = (e) => {
+    if (data.deleted) return;
+    longPressTimer = setTimeout(() => {
+      e.preventDefault();
+      showContextMenu(e, data, isMine, row);
+    }, 500);
+  };
+  const cancelLongPress = () => { clearTimeout(longPressTimer); };
+
+  bubble.addEventListener('touchstart', startLongPress, { passive: true });
+  bubble.addEventListener('touchend', cancelLongPress);
+  bubble.addEventListener('touchmove', cancelLongPress);
+  bubble.addEventListener('contextmenu', (e) => {
+    if (data.deleted) return;
+    e.preventDefault();
+    showContextMenu(e, data, isMine, row);
   });
 
   // Apply Messenger-style (Twemoji) emoji rendering to the message bubble
@@ -741,24 +822,186 @@ function renderMessage(data, isMine, isHistory = false) {
   return row;
 }
 
+/* ─────────────────── CONTEXT MENU ─────────────────── */
+let replyingTo = null;
+
+function showContextMenu(e, data, isMine, row) {
+  closeContextMenu();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'ctx-menu-overlay';
+  overlay.addEventListener('click', closeContextMenu);
+
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+
+  // Position
+  const x = e.touches ? e.touches[0]?.clientX || e.clientX : e.clientX;
+  const y = e.touches ? e.touches[0]?.clientY || e.clientY : e.clientY;
+
+  const items = [];
+
+  // Reply
+  items.push({
+    icon: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>',
+    label: 'رد',
+    action: () => startReply(data, isMine)
+  });
+
+  // Copy (text messages only)
+  if (data.type === 'text') {
+    items.push({
+      icon: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>',
+      label: 'نسخ',
+      action: () => copyMessageText(data)
+    });
+  }
+
+  // Edit (own text messages within 5 minutes)
+  if (isMine && data.type === 'text' && (Date.now() - data.timestamp < 5 * 60 * 1000)) {
+    items.push({
+      icon: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+      label: 'تعديل',
+      action: () => startEditingFromMenu(data.id, row)
+    });
+  }
+
+  // Separator
+  items.push({ separator: true });
+
+  // Delete for me
+  items.push({
+    icon: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>',
+    label: 'حذف لي فقط',
+    danger: true,
+    action: () => deleteMessageLocal(data.id, row)
+  });
+
+  // Delete for everyone (own messages only)
+  if (isMine) {
+    items.push({
+      icon: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>',
+      label: 'حذف للجميع',
+      danger: true,
+      action: () => deleteMessageForAll(data.id)
+    });
+  }
+
+  items.forEach(item => {
+    if (item.separator) {
+      const sep = document.createElement('div');
+      sep.className = 'ctx-separator';
+      menu.appendChild(sep);
+      return;
+    }
+    const btn = document.createElement('button');
+    btn.className = `ctx-menu-item${item.danger ? ' danger' : ''}`;
+    btn.innerHTML = `${item.icon}<span>${item.label}</span>`;
+    btn.addEventListener('click', () => { closeContextMenu(); item.action(); });
+    menu.appendChild(btn);
+  });
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(menu);
+
+  // Position after adding to DOM
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+    let left = Math.min(x, window.innerWidth - rect.width - 10);
+    let top = Math.min(y, window.innerHeight - rect.height - 10);
+    left = Math.max(10, left);
+    top = Math.max(10, top);
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  });
+}
+
+function closeContextMenu() {
+  document.querySelectorAll('.ctx-menu-overlay, .ctx-menu').forEach(el => el.remove());
+}
+
+/* ─────────────────── REPLY ─────────────────── */
+function startReply(data, isMine) {
+  replyingTo = {
+    id: data.id,
+    name: isMine ? myName : partnerName,
+    text: data.type === 'text' ? data.content : (data.type === 'audio' ? '🎵 رسالة صوتية' : (data.type === 'image' ? '📷 صورة' : '🎥 فيديو'))
+  };
+
+  // Remove old reply bar if exists
+  document.querySelector('.reply-bar')?.remove();
+
+  const replyBar = document.createElement('div');
+  replyBar.className = 'reply-bar';
+  replyBar.innerHTML = `
+    <div class="reply-info">
+      <div class="reply-name">${escapeHtml(replyingTo.name)}</div>
+      <div class="reply-text">${escapeHtml(replyingTo.text)}</div>
+    </div>
+    <button class="reply-close" onclick="cancelReply()">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>`;
+
+  const inputBar = document.getElementById('input-bar');
+  inputBar.parentNode.insertBefore(replyBar, inputBar);
+  msgInput.focus();
+}
+
+window.cancelReply = function() {
+  replyingTo = null;
+  document.querySelector('.reply-bar')?.remove();
+};
+
+/* ─────────────────── COPY MESSAGE ─────────────────── */
+function copyMessageText(data) {
+  navigator.clipboard.writeText(data.content).then(() => {
+    showToast('📋 تم نسخ الرسالة');
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = data.content;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('📋 تم نسخ الرسالة');
+  });
+}
+
+/* ─────────────────── DELETE MESSAGE ─────────────────── */
+function deleteMessageLocal(id, row) {
+  row.style.animation = 'msgDeleteFade 0.3s ease forwards';
+  setTimeout(() => row.remove(), 300);
+  messageEls.delete(id);
+  socket.emit('delete-message-local', { id });
+}
+
+function deleteMessageForAll(id) {
+  socket.emit('delete-message', { id });
+}
+
 /* ─────────────────── MESSAGE EDITING ─────────────────── */
-window.startEditing = function(id) {
-  const row = messageEls.get(id);
-  if (!row) return;
+function startEditingFromMenu(id, row) {
   const textSpan = row.querySelector('.msg-text');
   if (!textSpan) return;
-  
+
   let content = textSpan.innerHTML
     .replace(/<br\s*[\/]?>/gi, '\n')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"');
-    
+
   msgInput.value = content;
   editingMsgId = id;
   msgInput.focus();
   toggleSendMic();
+}
+
+window.startEditing = function(id) {
+  const row = messageEls.get(id);
+  if (!row) return;
+  startEditingFromMenu(id, row);
 };
 
 /* ─────────────────── TICK STATUS ─────────────────── */

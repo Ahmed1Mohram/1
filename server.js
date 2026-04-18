@@ -73,6 +73,7 @@ io.on('connection', (socket) => {
       senderName: user.name,
       type: 'text',
       content: data.content,
+      replyTo: data.replyTo || null,
       timestamp: Date.now(),
       status: 'delivered'
     };
@@ -122,6 +123,29 @@ io.on('connection', (socket) => {
     saveMessage(user.room, msgData);
     socket.to(user.room).emit('receive-message', msgData);
     socket.emit('message-delivered', { id: data.id });
+  });
+
+  // ─── Delete message for everyone ───
+  socket.on('delete-message', (data) => {
+    const user = connectedUsers.get(socket.id);
+    if (!user) return;
+    
+    const history = roomMessages.get(user.room) || [];
+    const msgIndex = history.findIndex(m => m.id === data.id);
+    
+    if (msgIndex !== -1 && history[msgIndex].senderId === socket.id) {
+      // Replace content with "deleted" marker
+      history[msgIndex].type = 'deleted';
+      history[msgIndex].content = '';
+      history[msgIndex].deleted = true;
+      io.to(user.room).emit('message-deleted', { id: data.id });
+    }
+  });
+
+  // ─── Delete message for me only ───
+  socket.on('delete-message-local', (data) => {
+    // This is handled client-side only, but we acknowledge it
+    socket.emit('message-deleted-local', { id: data.id });
   });
 
   // ─── Mark messages as read ───
