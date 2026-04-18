@@ -354,6 +354,34 @@ body {
   flex: 1; /* Pushes content to bottom naturally */
 }
 
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition), transform 0.2s;
+  opacity: 0.6;
+}
+.edit-btn:hover {
+  color: var(--primary);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.edited-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.8;
+  margin-right: 2px;
+}
+
 /* ── Message Bubbles — Slower, elegant slide up ── */
 .msg-row {
   display: flex;
