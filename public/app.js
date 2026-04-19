@@ -537,6 +537,24 @@ function setupSocketListeners() {
 
 let editingMsgId = null;
 
+/* ─────────────────── SEND GAME MESSAGE (helper) ─────────────────── */
+function sendGameMessage(text) {
+  if (!socket || !socket.connected) {
+    showToast('⚠️ ادخل غرفة الأول!', 'error');
+    return;
+  }
+  const id = generateId();
+  const now = Date.now();
+  const msgDate = new Date(now).toLocaleDateString('ar-EG');
+  const lastMsg = messagesList.lastElementChild;
+  if (msgDate !== lastMsg?.dataset?.date) addDateSeparator(now);
+  
+  renderMessage({ id, senderId: mySocketId, type: 'text', content: text, timestamp: now, status: 'sent' }, true);
+  pendingMessages.set(id, { status: 'sent' });
+  socket.emit('send-message', { id, content: text, type: 'text' });
+  scrollToBottom();
+}
+
 /* ─────────────────── SEND TEXT MESSAGE ─────────────────── */
 function sendTextMessage() {
   const text = msgInput.value.trim();
@@ -1485,7 +1503,7 @@ function initXOGame() {
     document.querySelector('.games-grid').classList.add('hidden');
     gameEl.classList.remove('hidden');
     resetXO();
-    socket?.emit('send-message', { id: generateId(), content: '🎮 بدأ لعبة إكس أو! تعال نلعب', type: 'text' });
+    sendGameMessage('🎮 بدأ لعبة إكس أو! تعال نلعب');
   });
 
   board?.querySelectorAll('.xo-cell').forEach(cell => {
@@ -1497,7 +1515,7 @@ function initXOGame() {
       cell.classList.add('x');
       myTurn = false;
       statusEl.textContent = 'دور الخصم...';
-      socket?.emit('send-message', { id: generateId(), content: `🎮XO:${i}:X`, type: 'text' });
+      sendGameMessage(`🎮XO:${i}:X`);
       checkWin();
     });
   });
@@ -1543,7 +1561,7 @@ function initXOGame() {
 
   resetBtn?.addEventListener('click', () => {
     resetXO();
-    socket?.emit('send-message', { id: generateId(), content: '🔄 تم إعادة لعبة XO!', type: 'text' });
+    sendGameMessage('🔄 تم إعادة لعبة XO!');
   });
 }
 
@@ -1556,7 +1574,7 @@ function initRPSGame() {
     const choices = ['✊', '✋', '✌️'];
     const names = { '✊': 'حجر', '✋': 'ورقة', '✌️': 'مقص' };
     const myChoice = choices[Math.floor(Math.random() * 3)];
-    socket?.emit('send-message', { id: generateId(), content: `🎮 حجر ورقة مقص! اخترت: ${names[myChoice]} ${myChoice}`, type: 'text' });
+    sendGameMessage(`🎮 حجر ورقة مقص! اخترت: ${names[myChoice]} ${myChoice}`);
     showToast(`اخترت ${names[myChoice]} ${myChoice}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1582,7 +1600,7 @@ function initEmojiGuessGame() {
 
   startBtn.addEventListener('click', () => {
     const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
-    socket?.emit('send-message', { id: generateId(), content: `🤔 خمّن الكلمة!\n\n${puzzle.emoji}\n\nالجواب: ||${puzzle.answer}||`, type: 'text' });
+    sendGameMessage(`🤔 خمّن الكلمة!\n\n${puzzle.emoji}\n\nالجواب: ||${puzzle.answer}||`);
     showToast(`الجواب: ${puzzle.answer}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1622,7 +1640,7 @@ function initTruthDareGame() {
     const list = isTruth ? truths : dares;
     const item = list[Math.floor(Math.random() * list.length)];
     const label = isTruth ? '🟢 صراحة' : '🔴 جرأة';
-    socket?.emit('send-message', { id: generateId(), content: `🔥 ${label}\n\n${item}`, type: 'text' });
+    sendGameMessage(`🔥 ${label}\n\n${item}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1647,7 +1665,7 @@ function initWouldRatherGame() {
 
   startBtn.addEventListener('click', () => {
     const q = questions[Math.floor(Math.random() * questions.length)];
-    socket?.emit('send-message', { id: generateId(), content: `🤷‍♂️ هل تفضّل؟\n\n1️⃣ ${q[0]}\n\nأو\n\n2️⃣ ${q[1]}\n\nاختار! ⬇️`, type: 'text' });
+    sendGameMessage(`🤷‍♂️ هل تفضّل؟\n\n1️⃣ ${q[0]}\n\nأو\n\n2️⃣ ${q[1]}\n\nاختار! ⬇️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1665,7 +1683,7 @@ function initQuickMathGame() {
     else if (op === '-') { a = Math.floor(Math.random() * 50) + 30; b = Math.floor(Math.random() * 30) + 1; answer = a - b; }
     else { a = Math.floor(Math.random() * 12) + 2; b = Math.floor(Math.random() * 12) + 2; answer = a * b; }
     
-    socket?.emit('send-message', { id: generateId(), content: `⚡ تحدي الحساب السريع!\n\n🧮 ${a} ${op} ${b} = ؟\n\nمين يجاوب أسرع! 🏃‍♂️\n\nالجواب: ||${answer}||`, type: 'text' });
+    sendGameMessage(`⚡ تحدي الحساب السريع!\n\n🧮 ${a} ${op} ${b} = ؟\n\nمين يجاوب أسرع! 🏃‍♂️\n\nالجواب: ||${answer}||`);
     showToast(`الجواب: ${answer}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1681,7 +1699,7 @@ function initWordChainGame() {
   startBtn.addEventListener('click', () => {
     const word = starters[Math.floor(Math.random() * starters.length)];
     const lastChar = word[word.length - 1];
-    socket?.emit('send-message', { id: generateId(), content: `🔤🔗 سلسلة الكلمات!\n\nالقاعدة: كل واحد يقول كلمة تبدأ بآخر حرف من الكلمة اللي قبلها!\n\nالكلمة الأولى: 【${word}】\n\nدورك! قول كلمة تبدأ بحرف: "${lastChar}" ✍️`, type: 'text' });
+    sendGameMessage(`🔤🔗 سلسلة الكلمات!\n\nالقاعدة: كل واحد يقول كلمة تبدأ بآخر حرف من الكلمة اللي قبلها!\n\nالكلمة الأولى: 【${word}】\n\nدورك! قول كلمة تبدأ بحرف: "${lastChar}" ✍️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1710,7 +1728,7 @@ function initSpinWheelGame() {
     const prize = prizes[Math.floor(Math.random() * prizes.length)];
     const spinEmojis = ['🎡', '🎰', '🎯', '✨', '💫', '🌀'];
     const spinAnim = spinEmojis.join(' ');
-    socket?.emit('send-message', { id: generateId(), content: `🎡 عجلة الحظ تدور...\n\n${spinAnim}\n\n${prize.emoji} النتيجة:\n${prize.text}`, type: 'text' });
+    sendGameMessage(`🎡 عجلة الحظ تدور...\n\n${spinAnim}\n\n${prize.emoji} النتيجة:\n${prize.text}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1738,7 +1756,7 @@ function initNeverHaveGame() {
   ];
   btn.addEventListener('click', () => {
     const q = qs[Math.floor(Math.random() * qs.length)];
-    socket?.emit('send-message', { id: generateId(), content: `🙅‍♂️ ما عمري!\n\n${q}\n\n🟢 أنا عملتها = رد بـ ✅\n🔴 أنا ما عملتها = رد بـ ❌`, type: 'text' });
+    sendGameMessage(`🙅‍♂️ ما عمري!\n\n${q}\n\n🟢 أنا عملتها = رد بـ ✅\n🔴 أنا ما عملتها = رد بـ ❌`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1748,7 +1766,7 @@ function initTwoTruthsGame() {
   const btn = document.getElementById('start-two-truths');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    socket?.emit('send-message', { id: generateId(), content: `✅✅❌ حقيقتين وكذبة!\n\n📋 القاعدة:\nاكتب 3 جمل عن نفسك:\n- جملتين حقيقيتين ✅\n- جملة وحدة كذبة ❌\n\nوالطرف التاني لازم يخمّن الكذبة! 🕵️\n\nيلا ابدأ! ✍️`, type: 'text' });
+    sendGameMessage(`✅✅❌ حقيقتين وكذبة!\n\n📋 القاعدة:\nاكتب 3 جمل عن نفسك:\n- جملتين حقيقيتين ✅\n- جملة وحدة كذبة ❌\n\nوالطرف التاني لازم يخمّن الكذبة! 🕵️\n\nيلا ابدأ! ✍️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1769,7 +1787,7 @@ function initStoryBuilderGame() {
   ];
   btn.addEventListener('click', () => {
     const s = starters[Math.floor(Math.random() * starters.length)];
-    socket?.emit('send-message', { id: generateId(), content: `📖✍️ بناء القصة!\n\n📋 القاعدة:\nكل واحد يضيف جملة واحدة للقصة!\nنبني قصة مجنونة مع بعض 🤪\n\n📌 البداية:\n"${s}"\n\nكمّل القصة! ⬇️`, type: 'text' });
+    sendGameMessage(`📖✍️ بناء القصة!\n\n📋 القاعدة:\nكل واحد يضيف جملة واحدة للقصة!\nنبني قصة مجنونة مع بعض 🤪\n\n📌 البداية:\n"${s}"\n\nكمّل القصة! ⬇️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1794,7 +1812,7 @@ function initTriviaGame() {
     const t = qs[Math.floor(Math.random() * qs.length)];
     const shuffled = [...t.opts].sort(() => Math.random() - 0.5);
     const optStr = shuffled.map((o, i) => `${'①②③④'[i]} ${o}`).join('\n');
-    socket?.emit('send-message', { id: generateId(), content: `🧠 معلومات عامة!\n\n❓ ${t.q}\n\n${optStr}\n\nالجواب: ||${t.a}||`, type: 'text' });
+    sendGameMessage(`🧠 معلومات عامة!\n\n❓ ${t.q}\n\n${optStr}\n\nالجواب: ||${t.a}||`);
     showToast(`الجواب: ${t.a}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1817,7 +1835,7 @@ function initCompatibilityGame() {
   btn.addEventListener('click', () => {
     const r = results[Math.floor(Math.random() * results.length)];
     const bar = '█'.repeat(Math.floor(parseInt(r.pct) / 10)) + '░'.repeat(10 - Math.floor(parseInt(r.pct) / 10));
-    socket?.emit('send-message', { id: generateId(), content: `💕 نسبة التوافق بينكم:\n\n${r.emoji}\n\n[${bar}] ${r.pct}\n\n${r.msg}`, type: 'text' });
+    sendGameMessage(`💕 نسبة التوافق بينكم:\n\n${r.emoji}\n\n[${bar}] ${r.pct}\n\n${r.msg}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1840,7 +1858,7 @@ function initRateMeGame() {
       selected.push(pool.splice(idx, 1)[0]);
     }
     const lines = selected.map(c => `${c}: ___/10`).join('\n');
-    socket?.emit('send-message', { id: generateId(), content: `⭐ قيّمني!\n\nادي كل حاجة درجة من 10:\n\n${lines}\n\nيلا قيّم بصراحة! 💯`, type: 'text' });
+    sendGameMessage(`⭐ قيّمني!\n\nادي كل حاجة درجة من 10:\n\n${lines}\n\nيلا قيّم بصراحة! 💯`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1852,7 +1870,7 @@ function init20QGame() {
   const categories = ['شخصية مشهورة 🌟', 'حيوان 🐾', 'مكان 🌍', 'أكل 🍽️', 'فيلم/مسلسل 🎬', 'أداة/جهاز 📱'];
   btn.addEventListener('click', () => {
     const cat = categories[Math.floor(Math.random() * categories.length)];
-    socket?.emit('send-message', { id: generateId(), content: `🔎 لعبة 20 سؤال!\n\n📋 القاعدة:\nأنا فكّرت في: ${cat}\nاسألني أسئلة نعم/لا وحاول تخمّن!\n\nعندك 20 سؤال بس! ⏳\n\nيلا ابدأ اسأل! ❓`, type: 'text' });
+    sendGameMessage(`🔎 لعبة 20 سؤال!\n\n📋 القاعدة:\nأنا فكّرت في: ${cat}\nاسألني أسئلة نعم/لا وحاول تخمّن!\n\nعندك 20 سؤال بس! ⏳\n\nيلا ابدأ اسأل! ❓`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
@@ -1877,7 +1895,7 @@ function initThisOrThatGame() {
       selected.push(pool.splice(idx, 1)[0]);
     }
     const lines = selected.map((p, i) => `${i+1}. ${p[0]}  أو  ${p[1]}`).join('\n');
-    socket?.emit('send-message', { id: generateId(), content: `👈👉 ده ولا ده؟ (جولة سريعة!)\n\n${lines}\n\nجاوب بالأرقام! مثال: 1-يمين 2-شمال... ⚡`, type: 'text' });
+    sendGameMessage(`👈👉 ده ولا ده؟ (جولة سريعة!)\n\n${lines}\n\nجاوب بالأرقام! مثال: 1-يمين 2-شمال... ⚡`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
 }
