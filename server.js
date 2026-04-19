@@ -10,6 +10,16 @@ const io = new Server(server, {
   cors: { origin: '*' }
 });
 
+// Disable browser cache for development — always serve fresh files
+app.use((req, res, next) => {
+  if (req.url.endsWith('.js') || req.url.endsWith('.css') || req.url.endsWith('.html') || req.url === '/') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Track connected users
