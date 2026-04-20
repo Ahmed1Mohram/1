@@ -6,36 +6,60 @@
 
 'use strict';
 
-/* ─────────────────── Twemoji Helper ─────────────────── */
-// Applies Messenger/Twitter-style SVG emojis to any DOM element
-// ─────────────────── Messenger-style Emoji (Facebook) ───────────────────
+/* ─────────────────── Apple (iOS) Emoji Helper ─────────────────── */
+// Converts ALL emojis in a DOM element to Apple-style images (iPhone look)
+
+function emojiToCodepoint(emoji) {
+  const codepoints = [];
+  for (let i = 0; i < emoji.length; i++) {
+    const code = emoji.codePointAt(i);
+    if (code > 0xFFFF) i++; // skip surrogate pair
+    // Skip variation selectors (FE0F) for filename lookup
+    if (code === 0xFE0F) continue;
+    codepoints.push(code.toString(16));
+  }
+  return codepoints.join('-');
+}
 
 function applyTwemoji(el) {
   if (!el || !window.twemoji) return;
 
   try {
-    // 1. Use robust twemoji parser to get correct filenames for all emojis (handles ZWJ, etc)
+    // Step 1: Let twemoji parse and find all emojis (it handles ZWJ, flags, etc. correctly)
     twemoji.parse(el, {
       base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
       folder: '72x72',
       ext: '.png'
     });
 
-    // 2. Override with Facebook emojis, with fallback to Twemoji for missing ones
+    // Step 2: Replace each twemoji image with Apple (iOS) version
     const imgs = el.querySelectorAll('img.emoji');
     imgs.forEach(img => {
-      // originalSrc is the working Twemoji URL
-      const originalSrc = img.src; 
-      // extract filename e.g. '1f600.png'
-      const filename = originalSrc.substring(originalSrc.lastIndexOf('/') + 1);
+      const twemojiSrc = img.src; // Keep as fallback
+      // Extract the codepoint from twemoji URL (e.g. "1f600" from ".../72x72/1f600.png")
+      const match = twemojiSrc.match(/\/([0-9a-f-]+)\.png$/i);
+      if (!match) return;
       
-      // point to Facebook CDN
-      img.src = `https://cdn.jsdelivr.net/npm/emoji-datasource-facebook@14.0.0/img/facebook/64/${filename}`;
+      const codepoint = match[1];
       
-      // if Facebook image doesn't exist (404), fall back to Twemoji seamlessly!
+      // Try Apple emoji from multiple CDN sources
+      img.src = `https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.1.2/img/apple/64/${codepoint}.png`;
+      
       img.onerror = function() {
-        this.onerror = null;
-        this.src = originalSrc;
+        // Fallback 1: Try without variation selector parts
+        const simplified = codepoint.replace(/-fe0f/g, '');
+        if (simplified !== codepoint) {
+          this.onerror = function() {
+            // Fallback 2: Back to Twemoji
+            this.onerror = null;
+            this.src = twemojiSrc;
+          };
+          this.src = `https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.1.2/img/apple/64/${simplified}.png`;
+        } else {
+          // Fallback: Back to Twemoji
+          this.onerror = null;
+          this.src = twemojiSrc;
+        }
       };
       
       img.draggable = false;
@@ -245,14 +269,29 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Send button
-  sendBtn.addEventListener('click', () => {
-    if (msgInput.value.trim()) {
-      sendTextMessage();
-    } else {
-      startAudioRecording();
-    }
-  });
+  // Send text
+  const igSendBtn = document.getElementById('send-btn');
+  if (igSendBtn) {
+    igSendBtn.addEventListener('click', () => {
+      if (msgInput.value.trim()) sendTextMessage();
+    });
+  }
+
+  // Record audio
+  const micBtnIg = document.getElementById('mic-btn-ig');
+  if (micBtnIg) {
+    micBtnIg.addEventListener('click', startAudioRecording);
+  }
+
+  // Back button — go back to join screen
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      if (socket) socket.disconnect();
+      chatScreen.style.display = 'none';
+      joinScreen.classList.add('active');
+    });
+  }
 
   // Emoji
   emojiBtn.addEventListener('click', e => {
@@ -432,14 +471,14 @@ function setupSocketListeners() {
       renderMessage(msg, isMine, true /* isHistory */);
     });
 
-    addSystemMessage('📜 تم تحميل المحادثة السابقة');
+    // Instagram doesn't show system messages in chat
     scrollToBottom(true);
   });
 
   socket.on('waiting-for-partner', () => {
     partnerNameLbl.textContent = 'في انتظار الطرف الآخر...';
     partnerStatus.textContent = 'انتظر انضمام شخص آخر';
-    addSystemMessage(`🔗 رمز الغرفة: ${roomCode} — شاركه مع الطرف الآخر`);
+    // Room code shown in header only
   });
 
   socket.on('partner-joined', ({ name }) => {
@@ -449,7 +488,7 @@ function setupSocketListeners() {
     partnerAvatar.textContent = name.charAt(0).toUpperCase();
     statusDot.classList.remove('offline');
     statusDot.classList.add('online');
-    addSystemMessage(`✅ انضم ${name} إلى المحادثة`);
+    // No system message — toast only
     showToast(`👋 ${name} انضم إلى الغرفة`);
   });
 
@@ -457,7 +496,7 @@ function setupSocketListeners() {
     partnerStatus.textContent = 'انقطع الاتصال';
     statusDot.classList.remove('online');
     statusDot.classList.add('offline');
-    addSystemMessage('⚠️ غادر الطرف الآخر المحادثة');
+    // No system message — toast only
     showToast('⚠️ الطرف الآخر غادر', 'error');
   });
 
@@ -531,7 +570,7 @@ function setupSocketListeners() {
     partnerStatus.textContent = 'انقطع الاتصال بالسيرفر';
     statusDot.classList.remove('online');
     statusDot.classList.add('offline');
-    addSystemMessage('🔴 فُقد الاتصال');
+    // No system message — status shown in header
   });
 }
 
@@ -765,35 +804,20 @@ function renderMessage(data, isMine, isHistory = false) {
   if (data.type === 'text') {
     const isEditable = isMine && (Date.now() - data.timestamp < 5 * 60 * 1000);
     const editBtn = isEditable 
-      ? `<svg class="edit-btn" viewBox="0 0 24 24" width="14" height="14" style="cursor:pointer;margin-left:4px;opacity:0.7" onclick="startEditing('${data.id}')"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>` 
+      ? `<svg class="edit-btn" viewBox="0 0 24 24" width="14" height="14" style="cursor:pointer;margin-right:4px;opacity:0.7" onclick="startEditing('${data.id}')"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>` 
       : '';
-    const editedHtml = data.edited ? `<span class="edited-label" style="font-size:10px;margin-right:4px">(معدل)</span>` : '';
+    const editedHtml = data.edited ? `<span class="edited-label" style="font-size:10px;opacity:0.8">(معدل)</span>` : '';
     
     bubble.innerHTML = `
       <span class="msg-text">${escapeHtml(data.content).replace(/\n/g, '<br>')}</span>
-      <div class="msg-meta" style="align-items:center;">
-        ${editBtn}
-        ${editedHtml}
-        <span>${formatTime(data.timestamp)}</span>
-        ${isMine ? renderTicks(data.status || 'sent') : ''}
-      </div>`;
+      ${editBtn || editedHtml ? `<div style="display:flex;align-items:center;justify-content:flex-end;margin-top:2px">${editBtn}${editedHtml}</div>` : ''}`;
   } else if (data.type === 'image') {
     bubble.classList.add('media-bubble');
-    bubble.innerHTML = `
-      <img src="${data.content}" alt="صورة" loading="lazy" style="max-width:280px;border-radius:8px" />
-      <div class="msg-meta" style="padding:2px 6px 4px">
-        <span>${formatTime(data.timestamp)}</span>
-        ${isMine ? renderTicks(data.status || 'sent') : ''}
-      </div>`;
+    bubble.innerHTML = `<img src="${data.content}" alt="صورة" loading="lazy" style="max-width:280px;border-radius:8px" />`;
     bubble.querySelector('img').addEventListener('click', () => openImageViewer(data.content));
   } else if (data.type === 'video') {
     bubble.classList.add('media-bubble');
-    bubble.innerHTML = `
-      <video src="${data.content}" controls preload="metadata" style="max-width:280px;border-radius:8px;background:#000"></video>
-      <div class="msg-meta" style="padding:2px 6px 4px">
-        <span>${formatTime(data.timestamp)}</span>
-        ${isMine ? renderTicks(data.status || 'sent') : ''}
-      </div>`;
+    bubble.innerHTML = `<video src="${data.content}" controls preload="metadata" style="max-width:280px;border-radius:8px;background:#000"></video>`;
   } else if (data.type === 'audio') {
     bubble.classList.add('audio-bubble');
     const waveId = 'wave-' + data.id;
@@ -811,11 +835,7 @@ function renderMessage(data, isMine, isHistory = false) {
       </button>
       <div class="audio-waveform" id="${waveId}">${bars}</div>
       <button class="audio-speed-btn" id="${spdId}" onclick="changeAudioSpeed('${audioId}','${spdId}')">1×</button>
-      <span class="audio-duration" id="dur-${data.id}">${dur}</span>
-      <div class="msg-meta" style="margin-right:4px">
-        <span>${formatTime(data.timestamp)}</span>
-        ${isMine ? renderTicks(data.status || 'sent') : ''}
-      </div>`;
+      <span class="audio-duration" id="dur-${data.id}">${dur}</span>`;
   }
 
   // Handle deleted messages
@@ -878,18 +898,82 @@ function renderMessage(data, isMine, isHistory = false) {
 
   // Long press context menu (mobile + desktop right-click)
   let longPressTimer = null;
-  const startLongPress = (e) => {
-    if (data.deleted) return;
-    longPressTimer = setTimeout(() => {
-      e.preventDefault();
-      showContextMenu(e, data, isMine, row);
-    }, 500);
-  };
-  const cancelLongPress = () => { clearTimeout(longPressTimer); };
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let isSwiping = false;
+  let swipeTriggered = false;
 
-  bubble.addEventListener('touchstart', startLongPress, { passive: true });
-  bubble.addEventListener('touchend', cancelLongPress);
-  bubble.addEventListener('touchmove', cancelLongPress);
+  bubble.addEventListener('touchstart', (e) => {
+    if (data.deleted) return;
+    const touch = e.touches[0];
+    swipeStartX = touch.clientX;
+    swipeStartY = touch.clientY;
+    isSwiping = false;
+    swipeTriggered = false;
+    // Start long-press timer
+    longPressTimer = setTimeout(() => {
+      if (!isSwiping) {
+        e.preventDefault();
+        showContextMenu(e, data, isMine, row);
+      }
+    }, 500);
+  }, { passive: true });
+
+  bubble.addEventListener('touchmove', (e) => {
+    if (data.deleted || swipeTriggered) return;
+    const touch = e.touches[0];
+    const dx = swipeStartX - touch.clientX; // positive = swipe left
+    const dy = Math.abs(touch.clientY - swipeStartY);
+
+    // If mostly horizontal movement, treat as swipe
+    if (dx > 15 && dy < 40) {
+      isSwiping = true;
+      clearTimeout(longPressTimer);
+      
+      // Clamp the translate to max 80px
+      const moveX = Math.min(dx, 80);
+      row.style.transform = `translateX(-${moveX}px)`;
+      row.style.transition = 'none';
+
+      // Show reply hint arrow
+      if (!row.querySelector('.swipe-reply-hint')) {
+        const hint = document.createElement('div');
+        hint.className = 'swipe-reply-hint';
+        hint.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>';
+        row.appendChild(hint);
+      }
+      const hint = row.querySelector('.swipe-reply-hint');
+      hint.style.opacity = dx > 50 ? '1' : String(dx / 50);
+
+      // Trigger reply at threshold
+      if (dx > 60 && !swipeTriggered) {
+        swipeTriggered = true;
+        // Haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+    } else if (dy > 30) {
+      // Vertical scroll — cancel everything
+      clearTimeout(longPressTimer);
+      isSwiping = false;
+    }
+  }, { passive: true });
+
+  bubble.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+    // Animate back
+    row.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    row.style.transform = '';
+    // Remove hint
+    const hint = row.querySelector('.swipe-reply-hint');
+    if (hint) setTimeout(() => hint.remove(), 250);
+
+    if (swipeTriggered) {
+      startReply(data, isMine);
+    }
+    isSwiping = false;
+    swipeTriggered = false;
+  });
+
   bubble.addEventListener('contextmenu', (e) => {
     if (data.deleted) return;
     e.preventDefault();
@@ -1092,9 +1176,29 @@ function updateMessageStatus(msgId, status) {
   const row = messageEls.get(msgId);
   if (!row) return;
   const ticksEl = row.querySelector('.ticks');
-  if (!ticksEl) return;
-  ticksEl.className = `ticks ${status}`;
-  ticksEl.innerHTML = getTicksSvg(status);
+  if (ticksEl) {
+    ticksEl.className = `ticks ${status}`;
+    ticksEl.innerHTML = getTicksSvg(status);
+  }
+
+  // Instagram-style Seen Indicator
+  if (status === 'seen' && row.classList.contains('mine')) {
+    // Remove old seen indicators
+    document.querySelectorAll('.seen-indicator').forEach(el => el.remove());
+    
+    // Add new seen indicator to the bottom of this message row
+    const seenDiv = document.createElement('div');
+    seenDiv.className = 'seen-indicator';
+    
+    // Get partner's initial from the header avatar or global variable
+    const avatarChar = document.getElementById('partner-avatar')?.textContent || '?';
+    
+    seenDiv.innerHTML = `
+      <span>تمت المشاهدة</span>
+      <div class="seen-avatar">${avatarChar}</div>
+    `;
+    row.appendChild(seenDiv);
+  }
 }
 function renderTicks(status) {
   return `<span class="ticks ${status}">${getTicksSvg(status)}</span>`;
@@ -1221,8 +1325,7 @@ function buildEmojiPicker() {
       insertAtCursor(msgInput, emoji);
       toggleSendMic();
       msgInput.focus();
-      emojiPicker.classList.add('hidden');
-      emojiBtn.classList.remove('emoji-btn-active');
+      // Do NOT close picker — user can send multiple emojis like Instagram
     });
     reactionsRow.appendChild(btn);
   });
@@ -1341,8 +1444,7 @@ function makeEmojiBtn(emoji) {
     insertAtCursor(msgInput, emoji);
     toggleSendMic();
     msgInput.focus();
-    emojiPicker.classList.add('hidden');
-    emojiBtn.classList.remove('emoji-btn-active');
+    // Do NOT close the picker here so the user can send multiple emojis.
   });
   return btn;
 }
@@ -1417,8 +1519,18 @@ function emitStopTyping() {
 /* ─────────────────── HELPERS ─────────────────── */
 function toggleSendMic() {
   const hasText = msgInput.value.trim().length > 0;
-  sendIcon.classList.toggle('hidden', !hasText);
-  micIcon.classList.toggle('hidden', hasText);
+  const inputActions = document.getElementById('input-actions');
+  const sendBtn = document.getElementById('send-btn');
+  
+  if (inputActions && sendBtn) {
+    if (hasText) {
+      inputActions.classList.add('hidden');
+      sendBtn.classList.remove('hidden');
+    } else {
+      inputActions.classList.remove('hidden');
+      sendBtn.classList.add('hidden');
+    }
+  }
 }
 
 function scrollToBottom(instant = false) {
@@ -1585,21 +1697,8 @@ function initEmojiGuessGame() {
   const startBtn = document.getElementById('start-emoji-guess');
   if (!startBtn) return;
 
-  const puzzles = [
-    { emoji: '🌍✈️🏖️', answer: 'سفر' },
-    { emoji: '📱💬❤️', answer: 'شات' },
-    { emoji: '🎵🎤🎶', answer: 'غناء' },
-    { emoji: '⚽🏟️🏆', answer: 'كرة قدم' },
-    { emoji: '🍕🍔🍟', answer: 'أكل' },
-    { emoji: '📚✏️🎓', answer: 'دراسة' },
-    { emoji: '🌙⭐🛏️', answer: 'نوم' },
-    { emoji: '🎬🍿🎭', answer: 'سينما' },
-    { emoji: '💪🏋️‍♂️🏃', answer: 'رياضة' },
-    { emoji: '🎮🕹️👾', answer: 'ألعاب' },
-  ];
-
   startBtn.addEventListener('click', () => {
-    const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+    const puzzle = GAME_DATA.emojiGuess[Math.floor(Math.random() * GAME_DATA.emojiGuess.length)];
     sendGameMessage(`🤔 خمّن الكلمة!\n\n${puzzle.emoji}\n\nالجواب: ||${puzzle.answer}||`);
     showToast(`الجواب: ${puzzle.answer}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
@@ -1610,38 +1709,9 @@ function initEmojiGuessGame() {
 function initTruthDareGame() {
   const startBtn = document.getElementById('start-truth-dare');
   if (!startBtn) return;
-
-  const truths = [
-    'ما هو أكثر شيء محرج حصل لك؟ 😳','مين أكثر شخص بتفكر فيه دلوقتي؟ 💭',
-    'لو تقدر ترجع بالزمن، إيه أول حاجة هتغيرها؟ ⏰','إيه أكبر سر عندك محدش يعرفه؟ 🤫',
-    'مين آخر شخص بعتله رسالة حب؟ 💌','إيه أغرب حاجة جوجلتها؟ 🔍',
-    'لو مفيش عواقب، إيه أول حاجة هتعملها؟ 🤪','إيه أكثر حاجة بتخاف منها؟ 😰',
-    'مين أقرب شخص ليك في الدنيا؟ 🥰','لو لازم تاكل أكلة واحدة بس لآخر حياتك؟ 🍽️',
-    'إيه أكثر كذبة كذبتها وندمت عليها؟ 😬','مين الشخص اللي بتغار منه؟ 👀',
-    'إيه أكثر حاجة بتندم عليها في حياتك؟ 💔','لو هتعيش مع شخص واحد بس، مين؟ 🏠',
-    'إيه أغرب حلم حلمت بيه؟ 🌙','كم مرة حبيت حب حقيقي؟ ❤️',
-    'إيه أكثر شيء بيضايقك في الناس؟ 😤','لو تقدر تكون أي شخص ليوم واحد، مين؟ 🎭',
-    'إيه أكثر شيء بتحبه في نفسك؟ ✨','إيه آخر حاجة خلتك تبكي؟ 😢',
-    'مين الشخص اللي لو اتصل بيك دلوقتي هتفرح؟ 📱','إيه أكثر عادة سيئة عندك؟ 🙊',
-    'لو تقدر تمسح ذكرى من حياتك، أي واحدة؟ 🧠','إيه أجمل كومبليمنت وصلك؟ 🥹',
-    'هل في حد بتحبه ومش قادر تقوله؟ 💕','إيه أكثر حاجة بتخبيها عن أهلك؟ 🤐',
-  ];
-
-  const dares = [
-    'ابعت آخر صورة في الجاليري! 📸','اكتب بوست على السوشيال ميديا دلوقتي! 📱',
-    'ابعت رسالة لآخر شخص كلمته وقوله بحبك! 😂','غنّي أغنية واحنا بنسمع! 🎤',
-    'اعمل سكرينشوت لآخر محادثة وابعتها! 💬','قلد صوت حيوان واحنا بنسمع! 🐱',
-    'ابعت صورة سيلفي دلوقتي! 🤳','اكتب اسمك بالمقلوب في 10 ثواني! ⏱️',
-    'ابعت آخر 3 إيموجي استخدمتهم! 😜','غيّر صورة البروفايل لمدة ساعة! 🖼️',
-    'اكتب رسالة حب لنفسك! 💝','ابعت صوت وانت بتقول أنا حمار 5 مرات! 🫏',
-    'اكتب اسم كراشك الأول! 💘','ابعت سكرينشوت لآخر أغنية سمعتها! 🎵',
-    'اتصل بآخر شخص كلمته وقوله وحشتني! 📞','اكتب 3 حاجات بتحبها في الطرف التاني! 💖',
-    'سجّل صوت وانت بتضحك! 😂🎙️','ابعت صورة لأكلك دلوقتي! 🍽️',
-  ];
-
   startBtn.addEventListener('click', () => {
     const isTruth = Math.random() > 0.5;
-    const list = isTruth ? truths : dares;
+    const list = isTruth ? GAME_DATA.truths : GAME_DATA.dares;
     const item = list[Math.floor(Math.random() * list.length)];
     const label = isTruth ? '🟢 صراحة' : '🔴 جرأة';
     sendGameMessage(`🔥 ${label}\n\n${item}`);
@@ -1654,31 +1724,8 @@ function initWouldRatherGame() {
   const startBtn = document.getElementById('start-would-rather');
   if (!startBtn) return;
 
-  const questions = [
-    ['تعيش بدون إنترنت سنة 📵', 'تعيش بدون أكل لذيذ سنة 🍽️'],
-    ['تقدر تطير 🦅', 'تقدر تتنفس تحت الماء 🐠'],
-    ['تعرف المستقبل 🔮', 'تقدر تغير الماضي ⏰'],
-    ['تكون أذكى شخص في العالم 🧠', 'تكون أغنى شخص في العالم 💰'],
-    ['تعيش في الفضاء 🚀', 'تعيش في أعماق البحر 🌊'],
-    ['تتكلم كل لغات العالم 🗣️', 'تعزف كل آلة موسيقية 🎸'],
-    ['تقدر تقرأ أفكار الناس 🧠', 'تقدر تتحكم في الوقت ⏳'],
-    ['تعيش في عالم هاري بوتر 🧙', 'تعيش في عالم مارفل 🦸'],
-    ['تاكل بيتزا كل يوم 🍕', 'تاكل سوشي كل يوم 🍣'],
-    ['مفيش نوم أبداً بس طاقة كاملة 💪', 'تنام 12 ساعة بس أحلام حقيقية 💫'],
-    ['تعيش 200 سنة بس فقير 👴', 'تعيش 40 سنة بس ملياردير 💎'],
-    ['تكون مشهور ومكروه 📺', 'تكون مجهول ومحبوب ❤️'],
-    ['ترجع طفل وتعيش من الأول 👶', 'تروح للمستقبل 50 سنة 🚀'],
-    ['تفقد الذاكرة كلها 🧠', 'تفقد حاسة البصر 👁️'],
-    ['تعيش بدون موسيقى 🔇', 'تعيش بدون أفلام 🚫🎬'],
-    ['تكون بطل خارق بس لوحدك 🦸', 'إنسان عادي بس عندك أصحاب أوفياء 👥'],
-    ['تسافر عبر الزمن ⏰', 'تسافر عبر الأبعاد 🌌'],
-    ['تعرف متى هتموت 💀', 'تعرف إزاي هتموت 🤔'],
-    ['حياتك تتحول فيلم 🎬', 'حياتك تتحول أغنية 🎵'],
-    ['تعيش في 2050 🤖', 'تعيش في 1950 🕺'],
-  ];
-
   startBtn.addEventListener('click', () => {
-    const q = questions[Math.floor(Math.random() * questions.length)];
+    const q = GAME_DATA.wouldRather[Math.floor(Math.random() * GAME_DATA.wouldRather.length)];
     sendGameMessage(`🤷‍♂️ هل تفضّل؟\n\n1️⃣ ${q[0]}\n\nأو\n\n2️⃣ ${q[1]}\n\nاختار! ⬇️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1708,10 +1755,8 @@ function initWordChainGame() {
   const startBtn = document.getElementById('start-word-chain');
   if (!startBtn) return;
 
-  const starters = ['شمس', 'قمر', 'بحر', 'سماء', 'حب', 'نور', 'ورد', 'كتاب', 'سفر', 'موسيقى', 'حياة', 'صداقة'];
-  
   startBtn.addEventListener('click', () => {
-    const word = starters[Math.floor(Math.random() * starters.length)];
+    const word = GAME_DATA.wordChain[Math.floor(Math.random() * GAME_DATA.wordChain.length)];
     const lastChar = word[word.length - 1];
     sendGameMessage(`🔤🔗 سلسلة الكلمات!\n\nالقاعدة: كل واحد يقول كلمة تبدأ بآخر حرف من الكلمة اللي قبلها!\n\nالكلمة الأولى: 【${word}】\n\nدورك! قول كلمة تبدأ بحرف: "${lastChar}" ✍️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
@@ -1723,23 +1768,8 @@ function initSpinWheelGame() {
   const startBtn = document.getElementById('start-spin-wheel');
   if (!startBtn) return;
 
-  const prizes = [
-    { emoji: '🎉', text: 'مبرووك! فزت بلقب ملك/ة الشات!' },
-    { emoji: '😂', text: 'لازم تبعت نكتة مضحكة دلوقتي!' },
-    { emoji: '🎵', text: 'لازم تبعت مقطع صوتي وانت بتغني!' },
-    { emoji: '📸', text: 'ابعت صورة سيلفي دلوقتي!' },
-    { emoji: '💌', text: 'اكتب كومبليمنت حلو للطرف التاني!' },
-    { emoji: '🤣', text: 'احكي أطرف موقف حصلك!' },
-    { emoji: '🎭', text: 'قلد شخصية مشهورة بالصوت!' },
-    { emoji: '🌟', text: 'فزت بلقب نجم/ة اليوم! ⭐' },
-    { emoji: '💀', text: 'خسرت! لازم تعمل أي حاجة الطرف التاني يقولها!' },
-    { emoji: '🎁', text: 'مبرووك! الطرف التاني لازم يديك كومبليمنت!' },
-    { emoji: '🔥', text: 'Hot seat! الطرف التاني يسألك 3 أسئلة ولازم تجاوب بصراحة!' },
-    { emoji: '👑', text: 'أنت ملك/ة المحادثة لمدة 5 دقائق! 🏆' },
-  ];
-
   startBtn.addEventListener('click', () => {
-    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+    const prize = GAME_DATA.spinWheel[Math.floor(Math.random() * GAME_DATA.spinWheel.length)];
     const spinEmojis = ['🎡', '🎰', '🎯', '✨', '💫', '🌀'];
     const spinAnim = spinEmojis.join(' ');
     sendGameMessage(`🎡 عجلة الحظ تدور...\n\n${spinAnim}\n\n${prize.emoji} النتيجة:\n${prize.text}`);
@@ -1751,23 +1781,8 @@ function initSpinWheelGame() {
 function initNeverHaveGame() {
   const btn = document.getElementById('start-never-have');
   if (!btn) return;
-  const qs = [
-    'ما عمري نمت في محاضرة 😴','ما عمري كلمت حد غلط بالتلفون وكملت الكلام 😂',
-    'ما عمري بعت رسالة للشخص الغلط 📱','ما عمري أكلت أكل من الأرض 🍕',
-    'ما عمري ضحكت في موقف مش مناسب 🤭','ما عمري كذبت عشان ما أروحش الشغل/المدرسة 🤥',
-    'ما عمري سرقت أكل من التلاجة بالليل 🌙','ما عمري نسيت اسم حد وأنا بكلمه 😅',
-    'ما عمري ادعيت إني مشغول عشان ما أطلعش 🙈','ما عمري شفت فيلم رعب ونمت بالنور 👻',
-    'ما عمري بكيت من فيلم كرتون 😢','ما عمري حكيت سر حد تاني 🤫',
-    'ما عمري رجعت اتصلت بشخص بعد ما قلت مش هكلمه تاني 📞','ما عمري غنيت في الحمام 🎤🚿',
-    'ما عمري رقصت لوحدي في البيت 💃','ما عمري اتكلمت مع نفسي بصوت عالي 🗣️',
-    'ما عمري stalked حد على السوشيال ميديا لأكتر من ساعة 🕵️','ما عمري أكلت أكل حد تاني من غير ما يعرف 🍫',
-    'ما عمري حلمت بشخص وقولتله 😳','ما عمري ضحكت لحد ما عيطت 🤣😭',
-    'ما عمري نسيت عيد ميلاد حد مهم 🎂','ما عمري كسرت حاجة وخبيتها 🏺',
-    'ما عمري لبست حاجة مقلوبة وطلعت بيها 👕','ما عمري قلت لحد "أنا في السكة" وأنا لسه في البيت 🏠',
-    'ما عمري جبت هدية وندمت 🎁','ما عمري بعت رسالة صوتية غلط 🎙️',
-  ];
   btn.addEventListener('click', () => {
-    const q = qs[Math.floor(Math.random() * qs.length)];
+    const q = GAME_DATA.neverHave[Math.floor(Math.random() * GAME_DATA.neverHave.length)];
     sendGameMessage(`🙅‍♂️ ما عمري!\n\n${q}\n\n🟢 أنا عملتها = رد بـ ✅\n🔴 أنا ما عملتها = رد بـ ❌`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1787,18 +1802,8 @@ function initTwoTruthsGame() {
 function initStoryBuilderGame() {
   const btn = document.getElementById('start-story-builder');
   if (!btn) return;
-  const starters = [
-    'في يوم من الأيام، صحيت ولقيت نفسي في عالم غريب...',
-    'كنت ماشي في الشارع ولقيت صندوق غامض...',
-    'فجأة وصلتني رسالة من شخص مجهول...',
-    'دخلت غرفة مظلمة وسمعت صوت غريب...',
-    'لو رجعت بالزمن 100 سنة، أول حاجة حصلت...',
-    'في عالم موازي، أنا أصلاً كنت...',
-    'فتحت الباب ولقيت روبوت واقف قدامي وقالي...',
-    'لقيت خريطة قديمة تحت السرير وكان مكتوب فيها...',
-  ];
   btn.addEventListener('click', () => {
-    const s = starters[Math.floor(Math.random() * starters.length)];
+    const s = GAME_DATA.storyBuilder[Math.floor(Math.random() * GAME_DATA.storyBuilder.length)];
     sendGameMessage(`📖✍️ بناء القصة!\n\n📋 القاعدة:\nكل واحد يضيف جملة واحدة للقصة!\nنبني قصة مجنونة مع بعض 🤪\n\n📌 البداية:\n"${s}"\n\nكمّل القصة! ⬇️`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1808,20 +1813,8 @@ function initStoryBuilderGame() {
 function initTriviaGame() {
   const btn = document.getElementById('start-trivia');
   if (!btn) return;
-  const qs = [
-    { q: 'ما هي عاصمة أستراليا؟', a: 'كانبرا', opts: ['سيدني', 'كانبرا', 'ملبورن', 'بريزبن'] },
-    { q: 'كم عدد كواكب المجموعة الشمسية؟', a: '8', opts: ['7', '8', '9', '10'] },
-    { q: 'ما هو أطول نهر في العالم؟', a: 'النيل', opts: ['الأمازون', 'النيل', 'المسيسبي', 'الدانوب'] },
-    { q: 'في أي سنة وصل الإنسان للقمر؟', a: '1969', opts: ['1965', '1969', '1972', '1960'] },
-    { q: 'ما هو العنصر الكيميائي الأكثر وفرة في الكون؟', a: 'الهيدروجين', opts: ['الأكسجين', 'الهيدروجين', 'الكربون', 'النيتروجين'] },
-    { q: 'كم عظمة في جسم الإنسان البالغ؟', a: '206', opts: ['196', '206', '216', '256'] },
-    { q: 'ما هي أكبر دولة في أفريقيا مساحةً؟', a: 'الجزائر', opts: ['مصر', 'الجزائر', 'السودان', 'ليبيا'] },
-    { q: 'من اخترع المصباح الكهربائي؟', a: 'توماس إديسون', opts: ['نيكولا تيسلا', 'توماس إديسون', 'ألبرت أينشتاين', 'غراهام بيل'] },
-    { q: 'ما هو أسرع حيوان بري في العالم؟', a: 'الفهد', opts: ['الأسد', 'الفهد', 'النمر', 'الحصان'] },
-    { q: 'كم لغة رسمية في الأمم المتحدة؟', a: '6', opts: ['4', '5', '6', '8'] },
-  ];
   btn.addEventListener('click', () => {
-    const t = qs[Math.floor(Math.random() * qs.length)];
+    const t = GAME_DATA.trivia[Math.floor(Math.random() * GAME_DATA.trivia.length)];
     const shuffled = [...t.opts].sort(() => Math.random() - 0.5);
     const optStr = shuffled.map((o, i) => `${'①②③④'[i]} ${o}`).join('\n');
     sendGameMessage(`🧠 معلومات عامة!\n\n❓ ${t.q}\n\n${optStr}\n\nالجواب: ||${t.a}||`);
@@ -1834,18 +1827,8 @@ function initTriviaGame() {
 function initCompatibilityGame() {
   const btn = document.getElementById('start-compatibility');
   if (!btn) return;
-  const results = [
-    { pct: '98%', msg: 'توأم الروح! 💫 أنتم مخلوقين لبعض!', emoji: '💕🔥' },
-    { pct: '85%', msg: 'توافق خرافي! كأنكم تقرأون أفكار بعض! 🧠', emoji: '✨💖' },
-    { pct: '73%', msg: 'متوافقين جداً! فيه كيمياء واضحة بينكم 🧪', emoji: '💝🌟' },
-    { pct: '92%', msg: 'واو! نسبة عالية جداً! Match made in heaven! ☁️', emoji: '😍💯' },
-    { pct: '67%', msg: 'متوافقين بس محتاجين وقت أكتر مع بعض! ⏰', emoji: '💛🤝' },
-    { pct: '100%', msg: 'مستحيل!! نسبة التوافق كاملة! أنتم مش طبيعيين! 🤯', emoji: '🏆👑💎' },
-    { pct: '79%', msg: 'حلو! التوافق موجود بس في حاجات لسه هتكتشفوها! 🔍', emoji: '💜🌙' },
-    { pct: '88%', msg: 'ممتاز! أنتم مكملين بعض زي القهوة والحليب ☕', emoji: '🥰💫' },
-  ];
   btn.addEventListener('click', () => {
-    const r = results[Math.floor(Math.random() * results.length)];
+    const r = GAME_DATA.compatibility[Math.floor(Math.random() * GAME_DATA.compatibility.length)];
     const bar = '█'.repeat(Math.floor(parseInt(r.pct) / 10)) + '░'.repeat(10 - Math.floor(parseInt(r.pct) / 10));
     sendGameMessage(`💕 نسبة التوافق بينكم:\n\n${r.emoji}\n\n[${bar}] ${r.pct}\n\n${r.msg}`);
     document.getElementById('games-overlay')?.classList.add('hidden');
@@ -1856,15 +1839,9 @@ function initCompatibilityGame() {
 function initRateMeGame() {
   const btn = document.getElementById('start-rate-me');
   if (!btn) return;
-  const categories = [
-    'الشخصية 🧍', 'الذكاء 🧠', 'روح الدعابة 😂', 'الاهتمام ❤️',
-    'الصدق 🤝', 'الطيبة 🕊️', 'الجنون 🤪', 'الكسل 😴',
-    'الإبداع 🎨', 'الرومانسية 🌹', 'القوة 💪', 'الغموض 🕶️',
-    'الجمال ✨', 'الفضول 🔍', 'الصبر ⏳', 'السرعة ⚡',
-  ];
   btn.addEventListener('click', () => {
     const selected = [];
-    const pool = [...categories];
+    const pool = [...GAME_DATA.rateMe];
     for (let i = 0; i < 5; i++) {
       const idx = Math.floor(Math.random() * pool.length);
       selected.push(pool.splice(idx, 1)[0]);
@@ -1879,9 +1856,8 @@ function initRateMeGame() {
 function init20QGame() {
   const btn = document.getElementById('start-20q');
   if (!btn) return;
-  const categories = ['شخصية مشهورة 🌟', 'حيوان 🐾', 'مكان 🌍', 'أكل 🍽️', 'فيلم/مسلسل 🎬', 'أداة/جهاز 📱'];
   btn.addEventListener('click', () => {
-    const cat = categories[Math.floor(Math.random() * categories.length)];
+    const cat = GAME_DATA.twentyQ[Math.floor(Math.random() * GAME_DATA.twentyQ.length)];
     sendGameMessage(`🔎 لعبة 20 سؤال!\n\n📋 القاعدة:\nأنا فكّرت في: ${cat}\nاسألني أسئلة نعم/لا وحاول تخمّن!\n\nعندك 20 سؤال بس! ⏳\n\nيلا ابدأ اسأل! ❓`);
     document.getElementById('games-overlay')?.classList.add('hidden');
   });
@@ -1891,17 +1867,10 @@ function init20QGame() {
 function initThisOrThatGame() {
   const btn = document.getElementById('start-this-or-that');
   if (!btn) return;
-  const pairs = [
-    ['☕ قهوة', '🍵 شاي'], ['🌅 صباح', '🌙 ليل'], ['📱 آيفون', '🤖 أندرويد'],
-    ['🍕 بيتزا', '🍔 برجر'], ['🏖️ بحر', '🏔️ جبل'], ['🎮 بلايستيشن', '🎮 إكس بوكس'],
-    ['📚 كتب', '🎬 أفلام'], ['🐱 قطة', '🐶 كلب'], ['❄️ شتاء', '☀️ صيف'],
-    ['🎵 بوب', '🎸 روك'], ['🍫 شوكولاتة', '🍬 حلويات'], ['✈️ سفر', '🏠 بيت'],
-    ['💬 مكالمة', '📝 رسالة'], ['🎯 حظ', '🧠 ذكاء'], ['😂 كوميدي', '😱 رعب'],
-  ];
   btn.addEventListener('click', () => {
     // Pick 5 random pairs for a quick fire round
     const selected = [];
-    const pool = [...pairs];
+    const pool = [...GAME_DATA.thisOrThat];
     for (let i = 0; i < 5; i++) {
       const idx = Math.floor(Math.random() * pool.length);
       selected.push(pool.splice(idx, 1)[0]);

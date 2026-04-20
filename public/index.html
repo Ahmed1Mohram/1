@@ -47,22 +47,30 @@
   <!-- Sidebar / left panel placeholder for bg -->
   <div id="chat-bg"></div>
 
-  <!-- Header -->
+  <!-- Header — Instagram Direct -->
   <header id="chat-header">
-    <div class="header-avatar">
-      <div class="avatar-circle" id="partner-avatar">?</div>
-      <div id="partner-status-dot" class="status-dot offline"></div>
-    </div>
-    <div class="header-info">
-      <span id="partner-name-label">في انتظار الطرف الآخر...</span>
-      <span id="partner-status-label" class="status-text">غير متصل</span>
+    <button class="ig-header-btn" id="back-btn" title="رجوع">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ig-header-user" id="header-user-area">
+      <div class="header-avatar">
+        <div class="avatar-circle" id="partner-avatar">?</div>
+        <div id="partner-status-dot" class="status-dot offline"></div>
+      </div>
+      <div class="header-info">
+        <span id="partner-name-label">في انتظار الطرف الآخر...</span>
+        <span id="partner-status-label" class="status-text">غير متصل</span>
+      </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="games-btn" title="ألعاب">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      <button class="ig-header-btn" id="video-call-btn" title="مكالمة فيديو">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </button>
-      <button class="icon-btn" id="settings-btn" title="الإعدادات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <button class="ig-header-btn" id="games-btn" title="ألعاب">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      </button>
+      <button class="ig-header-btn" id="settings-btn" title="معلومات">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </button>
     </div>
   </header>
@@ -77,28 +85,30 @@
     </div>
   </main>
 
-  <!-- Input Bar -->
+  <!-- Input Bar — Instagram Direct Exact -->
   <footer id="input-bar">
-    <!-- Emoji Button -->
-    <button class="icon-btn input-icon" id="emoji-btn" title="إيموجي">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
-    </button>
-    <!-- Attach Button -->
-    <button class="icon-btn input-icon" id="attach-btn" title="إرفاق ملف">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-    </button>
     <input type="file" id="file-input" accept="image/*,video/*" style="display:none" />
 
-    <!-- Text Input -->
+    <!-- Text Input Pill -->
     <div class="text-input-wrap">
-      <textarea id="msg-input" placeholder="اكتب رسالة..." rows="1"></textarea>
-    </div>
+      <textarea id="msg-input" placeholder="المراسلة..." rows="1"></textarea>
+      
+      <!-- Icons inside pill (visible when no text) -->
+      <div id="input-actions" class="input-actions">
+        <button class="ig-input-icon" id="mic-btn-ig" title="تسجيل صوتي">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><path d="M12 19v3M8 22h8"/></svg>
+        </button>
+        <button class="ig-input-icon" id="attach-btn" title="معرض الصور">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <button class="ig-input-icon" id="emoji-btn" title="إيموجي">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </button>
+      </div>
 
-    <!-- Send / Mic Button -->
-    <button class="icon-btn send-btn" id="send-btn" title="إرسال">
-      <svg id="send-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      <svg id="mic-icon" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>
-    </button>
+      <!-- Send Button (shown when text is typed) -->
+      <button class="ig-send-btn hidden" id="send-btn" title="إرسال">إرسال</button>
+    </div>
   </footer>
 
   <!-- Emoji Picker — part of flex column, sits naturally above input bar -->
@@ -317,6 +327,7 @@
 <!-- Notification sound (hidden audio) -->
 <audio id="notify-sound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2ozHTh4q9bYo2UoRIne7M2MT0JTnMzr1pFdP1eWxufq0IxkSl+j0+rg16tqSm+v3OLfs4ZkVoOw4e/ot4FkT3ms3vDrvINnUXOn3Pj3yItpV36z4vb+0pJpUH+24vr80ZFoUIOy4Pb60ZRoT4Ks2vH+1JJxUY+53f//2ZVsUISl0uz+2ZZxT4Cd0eX72ZhxT4Gb0OT72ZhwToOa0OP62JhuTIiU0OP62JluS4iU0OL62ZlwTYiV0OL62JluTIiV0OP62pmxTYiU0OL62JlwToiV0OL62JlwToia0OL62JlxT"></audio>
 
+<script src="games-data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

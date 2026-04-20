@@ -11,49 +11,49 @@ html {
   overscroll-behavior: none;
 }
 
-/* ── CSS Variables — Dreamy Night Sky (ultra eye-friendly) ── */
+/* ── CSS Variables — Instagram Theme ── */
 :root {
-  --primary:        #7cacf8;
-  --primary-dark:   #5a8de6;
-  --primary-light:  #dbeafe;
-  --accent:         #a78bfa;
-  --bg-app:         #0f1623;
-  --bg-panel:       rgba(18, 27, 42, 0.92);
-  --bg-panel2:      rgba(24, 35, 55, 0.85);
-  --bg-input:       rgba(20, 30, 48, 0.7);
-  --bg-msg-mine:    rgba(55, 90, 145, 0.55);
-  --bg-msg-other:   rgba(28, 40, 60, 0.6);
-  --text-primary:   #e2eaf6;
-  --text-secondary: #8ba3c2;
-  --text-timestamp: #6d8aab;
-  --border:         rgba(124, 172, 248, 0.1);
-  --shadow:         rgba(0,0,0,0.4);
-  --tick-grey:      #6d8aab;
-  --tick-blue:      #7cacf8;
-  --radius-msg:     20px;
+  --primary:        #0095f6; /* Instagram Blue */
+  --primary-dark:   #0074cc;
+  --primary-light:  #e0f1ff;
+  --accent:         #ff3040;
+  --bg-app:         #000000;
+  --bg-panel:       #262626;
+  --bg-panel2:      #121212;
+  --bg-input:       #262626;
+  --bg-msg-mine:    linear-gradient(90deg, #C13584, #E1306C, #F56040);
+  --bg-msg-other:   #262626;
+  --text-primary:   #ffffff;
+  --text-secondary: #a8a8a8;
+  --text-timestamp: #717171;
+  --border:         #363636;
+  --shadow:         rgba(0,0,0,0.2);
+  --tick-grey:      #717171;
+  --tick-blue:      #0095f6;
+  --radius-msg:     22px;
   --radius-lg:      24px;
-  --transition:     0.3s cubic-bezier(.4,0,.2,1);
-  --font:           -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Arabic', 'Tajawal', sans-serif;
-  --glow-mine:      0 2px 20px rgba(124, 172, 248, 0.12), 0 1px 6px rgba(0,0,0,0.2);
-  --glow-other:     0 2px 16px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0,0,0,0.15);
+  --transition:     0.2s ease-out;
+  --font:           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --glow-mine:      none;
+  --glow-other:     none;
 }
 
 /* Light mode */
 body.light-mode {
-  --bg-app:         #eef2f8;
+  --bg-app:         #ffffff;
   --bg-panel:       #ffffff;
-  --bg-panel2:      #f0f4fa;
-  --bg-input:       #f0f4fa;
-  --bg-msg-mine:    #dbeafe;
-  --bg-msg-other:   #ffffff;
-  --text-primary:   #1a2535;
-  --text-secondary: #4a6580;
-  --text-timestamp: #6a85a0;
-  --border:         #d5e0f0;
-  --shadow:         rgba(0,0,0,0.08);
-  --tick-grey:      #7a9ab8;
-  --tick-blue:      #3a7bd5;
-  --bubble-shadow:  0 1px 4px rgba(0,0,0,0.12);
+  --bg-panel2:      #fafafa;
+  --bg-input:       #efefef;
+  --bg-msg-mine:    linear-gradient(90deg, #C13584, #E1306C, #F56040);
+  --bg-msg-other:   #efefef;
+  --text-primary:   #000000;
+  --text-secondary: #737373;
+  --text-timestamp: #8e8e8e;
+  --border:         #dbdbdb;
+  --shadow:         rgba(0,0,0,0.05);
+  --tick-grey:      #8e8e8e;
+  --tick-blue:      #0095f6;
+  --bubble-shadow:  none;
 }
 
 /* ── Reset ── */
@@ -85,46 +85,24 @@ body {
 #join-screen {
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0d1520 0%, #1a2535 40%, #101e35 100%);
+  background: var(--bg-app);
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
 }
-#join-screen::before {
-  content: '';
-  position: absolute;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(91,154,245,.12) 0%, transparent 70%);
-  top: -200px; right: -200px;
-  animation: bgPulse 6s ease-in-out infinite;
-}
-#join-screen::after {
-  content: '';
-  position: absolute;
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(58,123,213,.09) 0%, transparent 70%);
-  bottom: -150px; left: -150px;
-  animation: bgPulse 8s ease-in-out infinite reverse;
-}
-
-@keyframes bgPulse {
-  0%,100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.7; }
-}
 
 .join-card {
   position: relative;
-  background: rgba(33,45,61,.88);
-  backdrop-filter: blur(28px);
-  border: 1px solid rgba(91,154,245,.15);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
   border-radius: 28px;
   padding: 40px 36px;
   width: min(420px, 95vw);
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+  box-shadow: 0 10px 40px var(--shadow);
   animation: cardIn .6s cubic-bezier(.34,1.56,.64,1) both;
 }
 
@@ -146,12 +124,9 @@ body {
 
 .join-card h1 {
   text-align: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, #7ab8ff, #5b9af5, #60b8ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: 'Instagram Sans', -apple-system, sans-serif;
 }
 .join-sub {
   text-align: center;
@@ -163,37 +138,36 @@ body {
 .input-group { display: flex; flex-direction: column; gap: 8px; }
 .input-group label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 .input-group input, .room-row input {
-  background: rgba(42,57,66,.9);
-  border: 1.5px solid var(--border);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--text-primary);
   font-family: var(--font);
   font-size: 15px;
   padding: 12px 16px;
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: border-color var(--transition);
   width: 100%;
 }
 .input-group input:focus, .room-row input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(91,154,245,.15);
+  border-color: var(--text-secondary);
 }
 .room-row { display: flex; gap: 8px; }
 .room-row input { flex: 1; }
 #gen-room {
-  background: rgba(42,57,66,.9);
-  border: 1.5px solid var(--border);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0 14px;
   font-size: 20px;
   cursor: pointer;
   color: var(--text-primary);
-  transition: background var(--transition);
+  transition: opacity var(--transition);
 }
-#gen-room:hover { background: var(--bg-panel2); }
+#gen-room:hover { opacity: 0.8; }
 
 .btn-primary {
-  background: linear-gradient(135deg, #5b9af5, #3a7bd5);
+  background: var(--primary);
   border: none;
   border-radius: 14px;
   color: white;
@@ -202,13 +176,10 @@ body {
   font-weight: 600;
   padding: 14px;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
-  box-shadow: 0 4px 20px rgba(58,123,213,.4);
+  transition: opacity var(--transition);
 }
 .btn-primary:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 28px rgba(58,123,213,.55);
+  opacity: 0.85;
 }
 .btn-primary:active { transform: translateY(0); }
 
@@ -256,17 +227,15 @@ body {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: rgba(124,172,248,0.05);
+  background: var(--bg-input);
   cursor: pointer;
   transition: all 0.2s;
   font-family: var(--font);
   color: var(--text-primary);
 }
 .game-card:hover {
-  background: rgba(124,172,248,0.12);
-  border-color: rgba(124,172,248,0.25);
+  opacity: 0.8;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 .game-icon { font-size: 28px; }
 .game-name { font-size: 15px; font-weight: 600; }
@@ -285,9 +254,9 @@ body {
 }
 .xo-cell {
   aspect-ratio: 1;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(124,172,248,0.06);
+  background: var(--bg-input);
   font-size: 32px;
   cursor: pointer;
   transition: all 0.15s;
@@ -297,8 +266,8 @@ body {
   align-items: center;
   justify-content: center;
 }
-.xo-cell:hover { background: rgba(124,172,248,0.15); }
-.xo-cell.x { color: #7cacf8; }
+.xo-cell:hover { opacity: 0.8; }
+.xo-cell.x { color: var(--primary); }
 .xo-cell.o { color: #a78bfa; }
 #xo-status {
   margin-top: 10px;
@@ -326,94 +295,73 @@ body {
   transition: background var(--transition), background-image var(--transition);
 }
 
-/* Default bg — Dreamy Night Sky with Aurora Orbs (Premium) */
+/* Default bg — Instagram Black/White */
 #chat-bg.default-bg {
-  background: linear-gradient(160deg, #080e1a 0%, #0f1a2e 50%, #0c1525 100%);
-  overflow: hidden;
-}
-#chat-bg.default-bg::before {
-  content: '';
-  position: absolute;
-  width: 160vw; height: 160vw;
-  background: radial-gradient(circle, rgba(124,172,248,0.05) 0%, rgba(167,139,250,0.03) 30%, transparent 60%);
-  top: -60vw; right: -60vw;
-  animation: floatOrb1 22s ease-in-out infinite alternate;
-}
-#chat-bg.default-bg::after {
-  content: '';
-  position: absolute;
-  width: 130vw; height: 130vw;
-  background: radial-gradient(circle, rgba(167,139,250,0.04) 0%, rgba(124,172,248,0.03) 30%, transparent 60%);
-  bottom: -50vw; left: -50vw;
-  animation: floatOrb2 28s ease-in-out infinite alternate;
-}
-@keyframes floatOrb1 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-10vw, 15vw) scale(1.1); }
-}
-@keyframes floatOrb2 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(15vw, -10vw) scale(1.05); }
-}
-#chat-bg.gradient1-bg { background: linear-gradient(160deg, #0f2027 0%, #1a3a4a 50%, #1e4d5e 100%); }
-#chat-bg.gradient2-bg { background: linear-gradient(160deg, #0d1b3e 0%, #1a2e6b 50%, #1a3fa0 100%); }
-#chat-bg.gradient3-bg { background: linear-gradient(160deg, #1a0b2e 0%, #3d1255 50%, #6b1070 100%); }
-#chat-bg.gradient4-bg { background: linear-gradient(160deg, #0a2010 0%, #123d1a 50%, #1a5c24 100%); }
-#chat-bg.dark-bg { background: #0d1117; }
-#chat-bg.pattern1-bg {
-  background-color: #1a2535;
-  background-image: radial-gradient(circle, rgba(91,154,245,.07) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-#chat-bg.pattern2-bg {
-  background-color: #1a2535;
-  background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(255,255,255,.025) 28px),
-                    repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(255,255,255,.025) 28px);
+  background: var(--bg-app);
 }
 
-/* ── Header ── */
+/* ── Header — Instagram Direct ── */
 #chat-header {
   position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(18,27,42,0.95) 0%, rgba(24,35,55,0.95) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(124,172,248,0.08);
-  min-height: 60px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  gap: 0;
+  padding: 8px 8px 8px 12px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border);
+  min-height: 56px;
+}
+.ig-header-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center; justify-content: center;
+  color: var(--text-primary);
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.ig-header-btn:hover { opacity: 0.7; }
+.ig-header-btn:active { transform: scale(0.92); }
+
+.ig-header-user {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
 }
 .header-avatar { position: relative; flex-shrink: 0; }
 .avatar-circle {
-  width: 44px; height: 44px;
+  width: 36px; height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7cacf8, #a78bfa);
+  background: linear-gradient(135deg, #C13584, #E1306C, #F56040);
   display: flex;
   align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700;
+  font-size: 15px; font-weight: 700;
   color: white;
   user-select: none;
-  box-shadow: 0 3px 12px rgba(124,172,248,0.35);
 }
 .status-dot {
   width: 12px; height: 12px;
   border-radius: 50%;
-  border: 2px solid var(--bg-panel);
+  border: 2px solid var(--bg-app);
   position: absolute;
-  bottom: 0; left: 0;
+  bottom: -1px; right: -1px;
   transition: background var(--transition);
 }
-.status-dot.online { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+.status-dot.online { background: #44b700; box-shadow: 0 0 0 1px var(--bg-app); }
 .status-dot.offline { background: var(--text-secondary); }
 
-.header-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.header-info span:first-child { font-size: 15px; font-weight: 600; }
+.header-info { flex: 1; display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.header-info span:first-child { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .status-text { font-size: 12px; color: var(--text-secondary); }
 
-.header-actions { display: flex; gap: 6px; }
+.header-actions { display: flex; gap: 0; align-items: center; }
 
 /* ── Messages area ── */
 #messages-area {
@@ -634,7 +582,10 @@ body {
 /* ── Message Bubbles — Slower, elegant slide up ── */
 .msg-row {
   display: flex;
+  flex-direction: column;
   width: 100%;
+  position: relative;
+  overflow: visible;
   /* Slower, smoother animation */
   animation: msgSlideUp .6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transform-origin: bottom center;
@@ -675,8 +626,30 @@ body {
   60% { box-shadow: 0 0 0 2px rgba(91,154,245,0.3); }
 }
 
-.msg-row.mine  { justify-content: flex-end; margin-right: 4px; }
-.msg-row.other { justify-content: flex-start; margin-left: 4px; }
+/* Swipe-to-Reply hint (Instagram style) */
+.swipe-reply-hint {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.1s;
+  pointer-events: none;
+}
+.msg-row.mine .swipe-reply-hint {
+  left: auto;
+  right: -36px;
+}
+
+.msg-row.mine  { align-items: flex-end; margin-right: 4px; }
+.msg-row.other { align-items: flex-start; margin-left: 4px; }
 
 .msg-group { margin-bottom: 2px; }
 
@@ -697,47 +670,29 @@ body {
   transform: scale(0.985);
 }
 
-/* Mine (right) — Dreamy Blue Glass */
+/* Mine (right) — Instagram Gradient */
 .msg-row.mine .bubble {
-  background: linear-gradient(135deg, rgba(65, 105, 170, 0.5) 0%, rgba(45, 80, 140, 0.45) 100%);
-  border-radius: var(--radius-msg) var(--radius-msg) 6px var(--radius-msg);
-  color: #eaf2ff;
-  border: 1px solid rgba(124, 172, 248, 0.12);
-  box-shadow: var(--glow-mine);
+  background: var(--bg-msg-mine);
+  border-radius: var(--radius-msg) var(--radius-msg) 4px var(--radius-msg);
+  color: #ffffff;
+  border: none;
+  box-shadow: none;
 }
 
-/* Telegram tail (mine) */
-.msg-row.mine .bubble::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: -7px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid rgba(45, 80, 140, 0.45);
-  border-bottom: 8px solid transparent;
-}
+/* No tails for Instagram */
+.msg-row.mine .bubble::after { display: none; }
 
-/* Other (left) — Soft Dark Glass */
+/* Other (left) — Solid Dark/Light Grey */
 .msg-row.other .bubble {
-  background: rgba(28, 40, 60, 0.55);
-  border-radius: var(--radius-msg) var(--radius-msg) var(--radius-msg) 6px;
+  background: var(--bg-msg-other);
+  border-radius: var(--radius-msg) var(--radius-msg) var(--radius-msg) 4px;
   color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: var(--glow-other);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
-/* Telegram tail (other) */
-.msg-row.other .bubble::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: -7px;
-  width: 0;
-  height: 0;
-  border-right: 8px solid rgba(28, 40, 60, 0.55);
-  border-bottom: 8px solid transparent;
-}
+/* No tails for Instagram */
+.msg-row.other .bubble::after { display: none; }
 
 /* Double Tap Heart Animation (Futuristic effect) */
 .heart-reaction {
@@ -781,6 +736,28 @@ body {
 .ticks.sent svg path { fill: var(--tick-grey); }
 .ticks.delivered svg path { fill: var(--tick-grey); }
 .ticks.seen svg path { fill: var(--tick-blue); }
+
+/* Instagram Seen Indicator */
+.seen-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  margin-bottom: 2px;
+  animation: msgFadeIn 0.3s ease;
+}
+.seen-avatar {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C13584, #E1306C, #F56040);
+  color: white;
+  display: flex;
+  align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
 
 /* ── Image / Video Messages ── */
 .bubble.media-bubble {
@@ -893,15 +870,15 @@ body {
 #typing-indicator.hidden { display: none; }
 .typing-bubble {
   background: var(--bg-msg-other);
-  border-radius: 18px 18px 18px 0;
+  border-radius: 18px;
   padding: 10px 14px;
   display: flex;
   gap: 5px;
   align-items: center;
-  border: 1px solid rgba(255,255,255,.04);
+  border: 1px solid var(--border);
 }
 .typing-bubble span {
-  width: 8px; height: 8px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--text-secondary);
   animation: typingDot 1.4s ease-in-out infinite;
@@ -921,110 +898,119 @@ body {
   margin: 10px 0;
 }
 .date-sep span {
-  background: rgba(26,37,53,.75);
-  backdrop-filter: blur(10px);
   color: var(--text-secondary);
   font-size: 12px;
   padding: 4px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(91,154,245,.12);
+  font-weight: 500;
 }
 
 /* ══════════════════════════════════
-   INPUT BAR — FLOATING CAPSULE (Futuristic)
+   INPUT BAR — INSTAGRAM DIRECT EXACT
 ══════════════════════════════════ */
 #input-bar {
   position: relative;
   z-index: 10;
   display: flex;
   align-items: flex-end;
-  gap: 6px;
+  gap: 0;
   padding: 8px 10px;
-  margin: 0 10px 10px;
-  margin-bottom: max(10px, env(safe-area-inset-bottom));
-  background: rgba(18, 27, 42, 0.8);
-  backdrop-filter: blur(30px) saturate(1.2);
-  -webkit-backdrop-filter: blur(30px) saturate(1.2);
-  border: 1px solid rgba(124, 172, 248, 0.08);
-  border-radius: 28px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  margin: 0;
+  margin-bottom: max(0px, env(safe-area-inset-bottom));
+  background: var(--bg-app);
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-}
-#input-bar:focus-within {
-  box-shadow: 0 12px 48px rgba(124, 172, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
-  border-color: rgba(124, 172, 248, 0.2);
-  transform: translateY(-2px);
 }
 
 .text-input-wrap {
   flex: 1;
-  background: rgba(13, 21, 32, 0.5);
+  background: transparent;
   border-radius: 24px;
-  padding: 4px 14px;
-  border: 1.5px solid transparent;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--border);
   min-height: 44px;
   display: flex;
   align-items: center;
 }
-.text-input-wrap:focus-within { border-color: rgba(91,154,245,.45); box-shadow: 0 0 0 3px rgba(91,154,245,.1); }
 textarea#msg-input {
   background: transparent;
   border: none;
   outline: none;
   color: var(--text-primary);
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 16px;
   resize: none;
   width: 100%;
   max-height: 120px;
-  line-height: 1.5;
-  padding: 8px 0;
+  line-height: 1.45;
+  padding: 10px 0;
 }
 textarea#msg-input::placeholder { color: var(--text-secondary); }
 textarea#msg-input::-webkit-scrollbar { width: 3px; }
 textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); }
 
-/* Icon buttons */
-.icon-btn {
-  width: 44px; height: 44px;
+/* Input icons inside pill */
+.ig-input-icon {
+  width: 36px; height: 36px;
   border-radius: 50%;
   border: none;
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center; justify-content: center;
-  color: var(--text-secondary);
-  transition: background var(--transition), color var(--transition), transform .15s;
+  color: var(--text-primary);
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+}
+.ig-input-icon:hover { opacity: 0.6; }
+.ig-input-icon:active { transform: scale(0.9); }
+.ig-input-icon svg { width: 24px; height: 24px; }
+
+/* General icon buttons (for header, etc.) */
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center; justify-content: center;
+  color: var(--text-primary);
+  transition: opacity 0.15s;
   flex-shrink: 0;
 }
-.icon-btn svg { width: 22px; height: 22px; stroke: currentColor; }
-.icon-btn:hover { background: var(--bg-panel2); color: var(--primary); }
-.icon-btn:active { transform: scale(.92); }
+.icon-btn:hover { opacity: 0.7; }
+.icon-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; }
 
-/* Emoji button glows when picker is open */
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.ig-send-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 36px;
+}
+.ig-send-btn:hover { opacity: 0.8; }
+
+/* Emoji button active */
+.ig-input-icon.emoji-btn-active,
 .icon-btn.emoji-btn-active {
-  background: rgba(0,132,255,.15);
-  color: #0084ff;
+  color: var(--primary);
 }
+.ig-input-icon.emoji-btn-active:hover,
 .icon-btn.emoji-btn-active:hover {
-  background: rgba(0,132,255,.25);
-  color: #0084ff;
+  opacity: 0.8;
 }
-
-.send-btn {
-  background: linear-gradient(135deg, #5b9af5, #3a7bd5) !important;
-  color: white !important;
-  box-shadow: 0 2px 12px rgba(58,123,213,.45);
-  transition: transform .15s, box-shadow .15s, filter .15s !important;
-}
-.send-btn:hover {
-  filter: brightness(1.12);
-  transform: scale(1.07) !important;
-  box-shadow: 0 5px 20px rgba(58,123,213,.6) !important;
-}
-.send-btn svg { stroke: none !important; fill: white !important; }
 
 .danger-btn {
   background: rgba(220,53,69,.15) !important;
@@ -1166,40 +1152,40 @@ textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); 
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 360px;
-  background: #1c1c1e;
-  border-top: 1px solid rgba(255,255,255,.07);
+  height: 320px;
+  background: var(--bg-app);
+  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
-  animation: pickerFadeUp .22s cubic-bezier(.4,0,.2,1) both;
+  transition: height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-top-width 0.25s;
 }
-#emoji-picker.hidden { display: none !important; }
-@keyframes pickerFadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+#emoji-picker.hidden { 
+  display: flex !important; 
+  height: 0 !important; 
+  border-top-width: 0 !important;
 }
 
 /* ── Search Bar ── */
 .ep-header {
   padding: 10px 10px 6px;
   flex-shrink: 0;
-  background: #1c1c1e;
+  background: var(--bg-app);
 }
 .ep-search-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #2c2c2e;
+  background: var(--bg-input);
   border-radius: 50px;
   padding: 8px 14px;
   border: 1.5px solid transparent;
   transition: border-color .18s, box-shadow .18s;
 }
 .ep-search-wrap:focus-within {
-  border-color: #0084ff;
-  box-shadow: 0 0 0 2px rgba(0,132,255,.18);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 149, 246, 0.18);
 }
 .ep-search-icon {
   width: 15px; height: 15px;
@@ -1361,7 +1347,7 @@ textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); 
   justify-content: space-around;
   padding: 4px 6px;
   border-top: 1px solid rgba(255,255,255,.06);
-  background: #1c1c1e;
+  background: var(--bg-app);
   flex-shrink: 0;
   gap: 2px;
 }
@@ -1379,7 +1365,7 @@ textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); 
 }
 .ep-tab svg { width: 20px; height: 20px; fill: currentColor; }
 .ep-tab:hover { background: rgba(255,255,255,.08); color: #c7c7cc; }
-.ep-tab.active { color: #0084ff; }
+.ep-tab.active { color: var(--primary); }
 .ep-tab.active::after {
   content: '';
   position: absolute;
@@ -1387,7 +1373,7 @@ textarea#msg-input::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); 
   left: 50%; transform: translateX(-50%);
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: #0084ff;
+  background: var(--primary);
 }
 
 /* ══════════════════════════════════
